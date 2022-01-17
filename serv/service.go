@@ -140,3 +140,60 @@ func (s PageService) GetSpaceBlogs(url string, key string) models.ContentArray {
 	return cnArray
 
 }
+
+func (s PageService) DeletePageLabels(url string, id int64, labels []string) string {
+	for _, lab := range labels {
+		reqUrl := fmt.Sprintf("%s/rest/api/content/%d/label/%s", url, id, lab) //limit=300
+		req, err := http.NewRequest("DELETE", reqUrl, nil)
+		req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+		client := myClient(reqUrl, basicAuth("admin", "admin"))
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Panicln(err)
+		}
+		fmt.Println(resp)
+		//bts, err := ioutil.ReadAll(resp.Body)
+		//err = json.Unmarshal(bytes, &cnArray)
+	}
+
+	return "labels deleted "
+}
+
+func (s PageService) DeletePage(url string, id int64) models.Content {
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%d", url, id) //limit=300
+	req, err := http.NewRequest("DELETE", reqUrl, nil)
+	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+	client := myClient(reqUrl, basicAuth("admin", "admin"))
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Panicln(err)
+	}
+	var cnt models.Content
+	bytes, err := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(bytes, &cnt)
+	return cnt
+}
+
+//"${CONF_URL}/plugins/servlet/scroll-office/api/templates?spaceKey=${spaceKey}"
+func (s PageService) ScrollTemplates(url string, key string) []string {
+
+	client := &http.Client{
+		CheckRedirect: redirectPolicyFunc,
+	}
+
+	reqUrl := fmt.Sprintf("%s/plugins/servlet/scroll-office/api/templates?spaceKey=%s", url, key)
+	req, err := http.NewRequest("GET", reqUrl, nil)
+	//req.SetBasicAuth("admin", "admin")
+	//resp, err := http.Get(reqUrl)
+	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Panicln(err)
+	}
+	tms := []string{}
+	bytes, err := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(bytes, &tms)
+
+	return tms
+
+}
