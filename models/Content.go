@@ -1,7 +1,10 @@
 package models
 
 type Space struct {
-	Id int64 `json:"id"`
+	Id   int64  `json:"id"`
+	Key  string `json:"key"`
+	Name string `json:"name"`
+	Type string `json:"type"`
 }
 
 type Icon struct {
@@ -44,10 +47,10 @@ type ContentHistory struct {
 	LastUpdated Version `json:"lastUpdated"`
 }
 
-type View struct {
-	Value          string `json:"value"`
-	Representation string `json:"representation"`
-}
+//type View struct {
+//	Value          string `json:"value"`
+//	Representation string `json:"representation"`
+//}
 
 type Storage struct {
 	Value          string `json:"value"`
@@ -55,18 +58,23 @@ type Storage struct {
 }
 
 type Body struct {
-	View    View    `json:"view"`
+	//View    View    `json:"view"`
 	Storage Storage `json:"storage"`
 }
 
+type Ancestor struct {
+	Id int64 `json:"id"`
+}
+
 type Content struct {
-	Id      string `json:"id"`
-	Type    string `json:"type"`
-	Status  string `json:"status"`
-	Title   string `json:"title"`
-	Body    Body   `json:"body"`
-	Space   Space  `json:"space"`
-	History ContentHistory
-	Links   GenericLinks `json:"_links"`
+	Id        int64  `json:"id"`
+	Type      string `json:"type"`
+	Status    string `json:"status"`
+	Title     string `json:"title"`
+	Body      Body   `json:"body"`
+	Space     Space  `json:"space"`
+	History   ContentHistory
+	Links     GenericLinks `json:"_links"`
+	Ancestors []Ancestor   `json:"ancestors"`
 	//Expandable _expandable  `json:"_expandable"`
 }

@@ -1,6 +1,7 @@
 package serv
 
 import (
+	"bytes"
 	"confluence-rest-golang/models"
 	"encoding/base64"
 	"encoding/json"
@@ -195,5 +196,74 @@ func (s PageService) ScrollTemplates(url string, key string) []string {
 	err = json.Unmarshal(bytes, &tms)
 
 	return tms
+
+}
+
+// todo
+
+func (s PageService) CreateSpace(url string, key string) []string {
+
+	client := &http.Client{
+		CheckRedirect: redirectPolicyFunc,
+	}
+
+	reqUrl := fmt.Sprintf("%s/plugins/servlet/scroll-office/api/templates?spaceKey=%s", url, key)
+	req, err := http.NewRequest("GET", reqUrl, nil)
+	//req.SetBasicAuth("admin", "admin")
+	//resp, err := http.Get(reqUrl)
+	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Panicln(err)
+	}
+	rspb, err2 := ioutil.ReadAll(resp.Body)
+	if err2 != nil {
+		log.Println(err2)
+	}
+	fmt.Println("Response is " + string(rspb))
+	return nil
+
+}
+
+//createPage(CONF_URL, TOKEN, space, parentId, title, body)
+func (s PageService) CreatePage(url string, key string, parent int64, title string, bd string) models.Content {
+
+	client := &http.Client{
+		CheckRedirect: redirectPolicyFunc,
+	}
+
+	reqUrl := fmt.Sprintf("%s/rest/api/content", url)
+	ancts := []models.Ancestor{{Id: parent}} // parent
+	cntb := models.Content{
+		Type:  "page",
+		Title: title,
+		Space: models.Space{
+			Key: key,
+		}, Body: models.Body{
+			Storage: models.Storage{
+				Representation: "storage", Value: bd},
+		},
+		Ancestors: ancts,
+	}
+	mrsCtn, err2 := json.Marshal(cntb)
+	if err2 != nil {
+		log.Panicln(err2)
+	}
+	req, err := http.NewRequest("POST", reqUrl, bytes.NewReader(mrsCtn))
+	//req.SetBasicAuth("admin", "admin")
+	//resp, err := http.Get(reqUrl)
+	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+	req.Header.Add("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	var content models.Content
+	bts, err := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(bts, &content)
+	fmt.Println(string(bts))
+
+	return content
 
 }
