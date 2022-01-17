@@ -44,11 +44,27 @@ type ContentHistory struct {
 	LastUpdated Version `json:"lastUpdated"`
 }
 
+type View struct {
+	Value          string `json:"value"`
+	Representation string `json:"representation"`
+}
+
+type Storage struct {
+	Value          string `json:"value"`
+	Representation string `json:"representation"`
+}
+
+type Body struct {
+	View    View    `json:"view"`
+	Storage Storage `json:"storage"`
+}
+
 type Content struct {
 	Id      string `json:"id"`
 	Type    string `json:"type"`
 	Status  string `json:"status"`
 	Title   string `json:"title"`
+	Body    Body   `json:"body"`
 	Space   Space  `json:"space"`
 	History ContentHistory
 	Links   GenericLinks `json:"_links"`

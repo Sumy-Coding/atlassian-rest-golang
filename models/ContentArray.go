@@ -6,9 +6,9 @@ type GenericLinks struct {
 }
 
 type ContentArray struct {
-	Results []Content
+	Results []Content `json:"results"`
 	start   int
 	limit   int
 	size    int
-	_links  GenericLinks
+	Links   GenericLinks `json:"_links"`
 }

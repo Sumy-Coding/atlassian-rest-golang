@@ -8,6 +8,6 @@ import (
 func main() {
 	CONF_URL := "http://localhost:7150"
 	pageServ := serv.PageService{}
-	page := pageServ.GetPage(CONF_URL, 65603)
-	fmt.Println(page)
+	child := pageServ.GetSpacePages(CONF_URL, "DEV")
+	fmt.Println(child)
 }
