@@ -15,6 +15,6 @@ func main() {
 	//for i := 3; i < 30; i++ {
 	//	pageServ.CreatePage(locUrl, "DEV", 2523138, fmt.Sprintf("dev 34-%d", i), "lorem ipsum dolor ...")
 	//}
-	pageServ.AddFileAsAttach(locUrl, "mod.go", 2523138)
+	pageServ.AddFileAsAttach(locUrl, "go.mod", 1474565)
 	fmt.Printf("Script took %d secs", time.Now().Sub(now).Seconds())
 }

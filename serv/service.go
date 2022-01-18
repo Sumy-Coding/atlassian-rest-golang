@@ -273,6 +273,56 @@ func (s PageService) CreatePage(url string, key string, parent int64, title stri
 
 }
 
+func (s PageService) GetPageAttaches(url string, pid int64) models.ContentArray {
+
+	client := &http.Client{
+		CheckRedirect: redirectPolicyFunc,
+	}
+
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%d/child/attachment", url, pid)
+	req, err := http.NewRequest("GET", reqUrl, nil)
+	//req.SetBasicAuth("admin", "admin")
+	//resp, err := http.Get(reqUrl)
+	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	var carr models.ContentArray
+	bts, err := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(bts, &carr)
+	fmt.Println(string(bts))
+
+	return carr
+
+}
+
+func (s PageService) GetAttach(url string, aid int64) models.Content {
+
+	client := &http.Client{
+		CheckRedirect: redirectPolicyFunc,
+	}
+
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%d", url, aid)
+	req, err := http.NewRequest("GET", reqUrl, nil)
+	//req.SetBasicAuth("admin", "admin")
+	//resp, err := http.Get(reqUrl)
+	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	var content models.Content
+	bts, err := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(bts, &content)
+	fmt.Println(string(bts))
+
+	return content
+
+}
+
 func (s PageService) AddFileAsAttach(url string, fn string, atId int64) string {
 
 	client := &http.Client{
@@ -289,6 +339,8 @@ func (s PageService) AddFileAsAttach(url string, fn string, atId int64) string {
 	//ioutil.WriteFile()
 	// =========
 
+	//attach._links.base + attach._links.download
+
 	fileDir, _ := os.Getwd()
 	fileName := fn
 	filePath := path.Join(fileDir, fileName)
@@ -296,15 +348,16 @@ func (s PageService) AddFileAsAttach(url string, fn string, atId int64) string {
 	fl, _ := os.Open(filePath)
 	defer fl.Close()
 
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
+	btb := &bytes.Buffer{} // byte buffer
+	writer := multipart.NewWriter(btb)
 	part, _ := writer.CreateFormFile("file", filepath.Base(fl.Name()))
 	io.Copy(part, fl)
 	writer.Close()
 
-	r, _ := http.NewRequest("POST", reqUrl, body)
+	r, _ := http.NewRequest("POST", reqUrl, btb)
 	r.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
 	r.Header.Add("Content-Type", writer.FormDataContentType())
+	r.Header.Add("X-Atlassian-Token", "nocheck")
 	//client := &http.Client{}
 	resp, err := client.Do(r)
 	//if err != nil {
