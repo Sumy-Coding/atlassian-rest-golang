@@ -1,5 +1,21 @@
 package models
 
+type CreatePage struct {
+	Type      string     `json:"type"`
+	Title     string     `json:"title"`
+	Ancestors []Ancestor `json:"ancestors"`
+	Space     Space      `json:"space"`
+	Body      Body       `json:"body"`
+}
+
+type EditPage struct {
+	Id    string `json:"id"`
+	Title string `json:"title"`
+	//Type  string `json:"type"`
+	Space Space `json:"space"`
+	Body  Body  `json:"body"`
+}
+
 type Space struct {
 	Id   int64  `json:"id"`
 	Key  string `json:"key"`

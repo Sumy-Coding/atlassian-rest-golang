@@ -3,7 +3,6 @@ package serv
 import (
 	"bytes"
 	"confluence-rest-golang/models"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -21,13 +20,17 @@ import (
 type PageService struct {
 }
 
-func basicAuth(username, password string) string {
-	auth := username + ":" + password
-	return base64.StdEncoding.EncodeToString([]byte(auth))
-}
+//func basicAuth(username, password string) string {
+//	auth := username + ":" + password
+//	return base64.StdEncoding.EncodeToString([]byte(auth))
+//}
 
 func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
-	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+	locUser, _ := os.LookupEnv("CONF_LOC_U")
+	locPass, _ := os.LookupEnv("CONF_LOC_P")
+	tokServ := TokenService{}
+	tok := tokServ.GetToken(locUser, locPass)
+	req.Header.Add("Authorization", "Basic "+tok)
 	return nil
 }
 
@@ -38,19 +41,19 @@ func myClient(url string, token string) *http.Client {
 	return client
 }
 
-func (s PageService) GetPage(url string, id string) models.Content {
+func (s PageService) GetPage(url string, tok string, id string) models.Content {
 
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
 
-	expand := "?expand=body.storage,history,version"
+	expand := "expand=body.storage,history,version"
 
-	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/%s", url, id, expand)
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%s?%s", url, id, expand)
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
-	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+	req.Header.Add("Authorization", "Basic "+tok)
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
@@ -63,15 +66,15 @@ func (s PageService) GetPage(url string, id string) models.Content {
 
 }
 
-func (s PageService) GetChildren(url string, id string) models.ContentArray {
+func (s PageService) GetChildren(url string, tok string, id string) models.ContentArray {
 
-	expand := "?expand=body.storage,history,version"
-	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/child/page/%s", url, id, expand)
+	expand := "expand=body.storage,history,version"
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/child/page?%s", url, id, expand)
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
-	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
-	client := myClient(reqUrl, basicAuth("admin", "admin"))
+	req.Header.Add("Authorization", "Basic "+tok)
+	client := myClient(reqUrl, tok)
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
@@ -84,7 +87,7 @@ func (s PageService) GetChildren(url string, id string) models.ContentArray {
 
 }
 
-func (s PageService) GetDescendants(url string, id string) models.ContentArray {
+func (s PageService) GetDescendants(url string, tok string, id string) models.ContentArray {
 
 	//expand := "?expand=body.storage,history,version"
 
@@ -92,8 +95,8 @@ func (s PageService) GetDescendants(url string, id string) models.ContentArray {
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
-	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
-	client := myClient(reqUrl, basicAuth("admin", "admin"))
+	req.Header.Add("Authorization", "Basic "+tok)
+	client := myClient(reqUrl, tok)
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
@@ -106,20 +109,20 @@ func (s PageService) GetDescendants(url string, id string) models.ContentArray {
 
 }
 
-func (s PageService) PageContains(url string, id string, find string) bool {
-	value := s.GetPage(url, id).Body.Storage.Value
+func (s PageService) PageContains(url string, tok string, id string, find string) bool {
+	value := s.GetPage(url, tok, id).Body.Storage.Value
 	return strings.Contains(value, find)
 }
 
-func (s PageService) GetSpacePages(url string, key string) models.ContentArray {
+func (s PageService) GetSpacePages(url string, tok string, key string) models.ContentArray {
 
 	expand := "expand=body.storage,history,version"
 	reqUrl := fmt.Sprintf("%s/rest/api/content?type=page&spaceKey=%s&%s&limit=300", url, key, expand)
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
-	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
-	client := myClient(reqUrl, basicAuth("admin", "admin"))
+	req.Header.Add("Authorization", "Basic "+tok)
+	client := myClient(reqUrl, tok)
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
@@ -134,14 +137,14 @@ func (s PageService) GetSpacePages(url string, key string) models.ContentArray {
 
 //getSpacePagesByLabel() {                                 // todo
 
-func (s PageService) GetSpaceBlogs(url string, key string) models.ContentArray {
+func (s PageService) GetSpaceBlogs(url string, tok string, key string) models.ContentArray {
 
 	reqUrl := fmt.Sprintf("%s/rest/api/content?type=blogpost&spaceKey=%s&limit=300", url, key) //limit=300
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
-	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
-	client := myClient(reqUrl, basicAuth("admin", "admin"))
+	req.Header.Add("Authorization", "Basic "+tok)
+	client := myClient(reqUrl, tok)
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
@@ -154,12 +157,12 @@ func (s PageService) GetSpaceBlogs(url string, key string) models.ContentArray {
 
 }
 
-func (s PageService) DeletePageLabels(url string, id string, labels []string) string {
+func (s PageService) DeletePageLabels(url string, tok string, id string, labels []string) string {
 	for _, lab := range labels {
 		reqUrl := fmt.Sprintf("%s/rest/api/content/%d/label/%s", url, id, lab) //limit=300
 		req, err := http.NewRequest("DELETE", reqUrl, nil)
-		req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
-		client := myClient(reqUrl, basicAuth("admin", "admin"))
+		req.Header.Add("Authorization", "Basic "+tok)
+		client := myClient(reqUrl, tok)
 		resp, err := client.Do(req)
 		if err != nil {
 			log.Panicln(err)
@@ -172,11 +175,11 @@ func (s PageService) DeletePageLabels(url string, id string, labels []string) st
 	return "labels deleted "
 }
 
-func (s PageService) DeletePage(url string, id string) models.Content {
+func (s PageService) DeletePage(url string, tok string, id string) models.Content {
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%d", url, id) //limit=300
 	req, err := http.NewRequest("DELETE", reqUrl, nil)
-	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
-	client := myClient(reqUrl, basicAuth("admin", "admin"))
+	req.Header.Add("Authorization", "Basic "+tok)
+	client := myClient(reqUrl, tok)
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
@@ -188,7 +191,7 @@ func (s PageService) DeletePage(url string, id string) models.Content {
 }
 
 //"${CONF_URL}/plugins/servlet/scroll-office/api/templates?spaceKey=${spaceKey}"
-func (s PageService) ScrollTemplates(url string, key string) []string {
+func (s PageService) ScrollTemplates(url string, tok string, key string) []string {
 
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
@@ -198,7 +201,7 @@ func (s PageService) ScrollTemplates(url string, key string) []string {
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
-	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+	req.Header.Add("Authorization", "Basic "+tok)
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
@@ -213,7 +216,7 @@ func (s PageService) ScrollTemplates(url string, key string) []string {
 
 // todo
 
-func (s PageService) CreateSpace(url string, key string) []string {
+func (s PageService) CreateSpace(url string, tok string, key string) []string {
 
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
@@ -223,7 +226,7 @@ func (s PageService) CreateSpace(url string, key string) []string {
 	req, err := http.NewRequest("POST", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
-	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+	req.Header.Add("Authorization", "Basic "+tok)
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
@@ -238,7 +241,7 @@ func (s PageService) CreateSpace(url string, key string) []string {
 }
 
 //createPage(CONF_URL, TOKEN, space, parentId, title, body)
-func (s PageService) CreatePage(url string, key string, parent string, title string, bd string) models.Content {
+func (s PageService) CreatePage(url string, tok string, key string, parent string, title string, bd string) models.Content {
 
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
@@ -246,7 +249,8 @@ func (s PageService) CreatePage(url string, key string, parent string, title str
 
 	reqUrl := fmt.Sprintf("%s/rest/api/content", url)
 	ancts := []models.Ancestor{{Id: parent}} // parent
-	cntb := models.Content{
+	cntb := models.CreatePage{
+		//Id:    "",
 		Type:  "page",
 		Title: title,
 		Space: models.Space{
@@ -264,7 +268,7 @@ func (s PageService) CreatePage(url string, key string, parent string, title str
 	req, err := http.NewRequest("POST", reqUrl, bytes.NewReader(mrsCtn))
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
-	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+	req.Header.Add("Authorization", "Basic "+tok)
 	req.Header.Add("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
@@ -280,7 +284,7 @@ func (s PageService) CreatePage(url string, key string, parent string, title str
 
 }
 
-func (s PageService) GetPageAttaches(url string, pid string) models.ContentArray {
+func (s PageService) GetPageAttaches(url string, tok string, pid string) models.ContentArray {
 
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
@@ -291,7 +295,7 @@ func (s PageService) GetPageAttaches(url string, pid string) models.ContentArray
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
-	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+	req.Header.Add("Authorization", "Basic "+tok)
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
@@ -306,7 +310,7 @@ func (s PageService) GetPageAttaches(url string, pid string) models.ContentArray
 
 }
 
-func (s PageService) GetAttach(url string, aid string) models.Content {
+func (s PageService) GetAttach(url string, tok string, aid string) models.Content {
 
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
@@ -317,7 +321,7 @@ func (s PageService) GetAttach(url string, aid string) models.Content {
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
-	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+	req.Header.Add("Authorization", "Basic "+tok)
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
@@ -332,11 +336,11 @@ func (s PageService) GetAttach(url string, aid string) models.Content {
 
 }
 
-func (s PageService) DownloadAttach(url string, atId string) string {
+func (s PageService) DownloadAttach(url string, tok string, atId string) string {
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
-	attach := s.GetAttach(url, atId)
+	attach := s.GetAttach(url, tok, atId)
 
 	fileDir, _ := os.Getwd()
 	fName := attach.Title
@@ -351,7 +355,7 @@ func (s PageService) DownloadAttach(url string, atId string) string {
 	//reader.NextPart()
 
 	r1, _ := http.NewRequest("GET", dwLink, nil)
-	r1.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+	r1.Header.Add("Authorization", "Basic "+tok)
 	//r1.Header.Add("Content-Type", writer.FormDataContentType())
 	r1.Header.Add("X-Atlassian-Token", "nocheck")
 
@@ -367,7 +371,7 @@ func (s PageService) DownloadAttach(url string, atId string) string {
 	return filePath
 }
 
-func (s PageService) AddFileAsAttach(url string, pid string, atId string) string {
+func (s PageService) AddFileAsAttach(url string, tok string, pid string, atId string) string {
 
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
@@ -379,14 +383,14 @@ func (s PageService) AddFileAsAttach(url string, pid string, atId string) string
 	// =========
 
 	// get attach
-	attach := s.GetAttach(url, atId)
+	attach := s.GetAttach(url, tok, atId)
 
 	fileDir, _ := os.Getwd()
 	fName := attach.Title
 	filePath := path.Join(fileDir, fName) // equals atFilePath
 	fmt.Println("File path is " + filePath)
 
-	atFilePath := s.DownloadAttach(url, atId) // attach.Id = nil
+	atFilePath := s.DownloadAttach(url, tok, atId) // attach.Id = nil
 
 	//os.WriteFile(fName)
 	//ioutil.WriteFile(fName)
@@ -407,7 +411,7 @@ func (s PageService) AddFileAsAttach(url string, pid string, atId string) string
 	cntType := writer.FormDataContentType()
 	fmt.Println("Content type is " + cntType)
 
-	r.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+	r.Header.Add("Authorization", "Basic "+tok)
 	r.Header.Add("Content-Type", cntType)
 	r.Header.Add("X-Atlassian-Token", "nocheck")
 	//client := &http.Client{}
@@ -429,4 +433,28 @@ func (s PageService) AddFileAsAttach(url string, pid string, atId string) string
 
 	return "attachment added " + string(bts)
 
+}
+
+func (s PageService) GetComment(url string, tok string, cid string) models.Content {
+	client := &http.Client{
+		CheckRedirect: redirectPolicyFunc,
+	}
+
+	expand := "expand=body.storage,history,version"
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%s?%s", url, cid, expand)
+	req, err := http.NewRequest("GET", reqUrl, nil)
+	//req.SetBasicAuth("admin", "admin")
+	//resp, err := http.Get(reqUrl)
+	req.Header.Add("Authorization", "Basic "+tok)
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	var content models.Content
+	bts, err := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(bts, &content)
+	fmt.Println(string(bts))
+
+	return content
 }
