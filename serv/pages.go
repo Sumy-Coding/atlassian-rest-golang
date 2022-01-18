@@ -47,7 +47,7 @@ func (s PageService) GetPage(url string, tok string, id string) models.Content {
 		CheckRedirect: redirectPolicyFunc,
 	}
 
-	expand := "expand=body.storage,history,version"
+	expand := "expand=space,body.storage,history,version"
 
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s?%s", url, id, expand)
 	req, err := http.NewRequest("GET", reqUrl, nil)
@@ -285,6 +285,9 @@ func (s PageService) CreatePage(url string, tok string, key string, parent strin
 }
 
 func (s PageService) CopyPage(url string, tok string, pid string, parent string) models.Content {
+	// todo - copyLabels, copyComments, copyAttaches
+
+	log.Println("Copying page " + pid)
 
 	orPage := s.GetPage(url, tok, pid)
 	parPage := s.GetPage(url, tok, parent)
@@ -305,13 +308,41 @@ func (s PageService) CopyPage(url string, tok string, pid string, parent string)
 	} */
 	var ttl string
 	if orPage.Space.Key == parPage.Space.Key {
-		ttl = orPage.Title
-	} else {
 		ttl = "Copy of " + orPage.Title
+	} else {
+		ttl = orPage.Title
 	}
 
 	var content models.Content
 	s.CreatePage(url, tok, orPage.Space.Key, parent, ttl, orPage.Body.Storage.Value)
+
+	return content
+
+}
+
+func (s PageService) CopyPageDescs(url string, tok string, pid string, parent string, nTitle string,
+	copyLabs bool, copyCo bool, copyAtt bool) []models.Content {
+	// todo - copyLabels, copyComments, copyAttaches
+
+	log.Println("Copying page " + pid)
+	content := make([]models.Content, 0)
+
+	//orPage := s.GetPage(url, tok, pid)
+	parPage := s.GetPage(url, tok, parent)
+	childs := s.GetChildren(url, tok, pid)
+	rootCp := s.CopyPage(url, tok, pid, parPage.Id)
+
+	for _, pg := range childs.Results {
+		//var ttl string	// todo - check current space or different
+		//if orPage.Space.Key == parPage.Space.Key {
+		//	ttl = "Copy of " + orPage.Title
+		//} else {
+		//	ttl = orPage.Title
+		//}
+		s.CopyPageDescs(url, tok, pg.Id, rootCp.Id, nTitle, copyLabs, copyCo, copyAtt)
+		cpPage := s.CopyPage(url, tok, pg.Id, rootCp.Id)
+		content = append(content, cpPage)
+	}
 
 	return content
 
