@@ -114,26 +114,6 @@ func (s PageService) PageContains(url string, tok string, id string, find string
 	return strings.Contains(value, find)
 }
 
-func (s PageService) GetPageLabels(url string, tok string, pid string) models.LabelArray {
-
-	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/label", url, pid)
-	req, err := http.NewRequest("GET", reqUrl, nil)
-	//req.SetBasicAuth("admin", "admin")
-	//resp, err := http.Get(reqUrl)
-	req.Header.Add("Authorization", "Basic "+tok)
-	client := myClient(reqUrl, tok)
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Panicln(err)
-	}
-	var cnArray models.LabelArray
-	bts, err := ioutil.ReadAll(resp.Body)
-	err = json.Unmarshal(bts, &cnArray)
-
-	return cnArray
-
-}
-
 func (s PageService) GetSpacePages(url string, tok string, key string) models.ContentArray {
 
 	expand := "expand=body.storage,history,version"
@@ -299,6 +279,39 @@ func (s PageService) CreatePage(url string, tok string, key string, parent strin
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &content)
 	fmt.Println(string(bts))
+
+	return content
+
+}
+
+func (s PageService) CopyPage(url string, tok string, pid string, parent string) models.Content {
+
+	orPage := s.GetPage(url, tok, pid)
+	parPage := s.GetPage(url, tok, parent)
+
+	/* reqUrl := fmt.Sprintf("%s/rest/api/content", url)
+	ancts := []models.Ancestor{{Id: parent}} // parent
+	cntb := models.CreatePage{
+		//Id:    "",
+		Type:  "page",
+		Title: orPage.Title,
+		Space: models.Space{
+			Key: orPage.Space.Key,
+		}, Body: models.Body{
+			Storage: models.Storage{
+				Representation: "storage", Value: orPage.Body.Storage.Value},
+		},
+		Ancestors: ancts,
+	} */
+	var ttl string
+	if orPage.Space.Key == parPage.Space.Key {
+		ttl = orPage.Title
+	} else {
+		ttl = "Copy of " + orPage.Title
+	}
+
+	var content models.Content
+	s.CreatePage(url, tok, orPage.Space.Key, parent, ttl, orPage.Body.Storage.Value)
 
 	return content
 

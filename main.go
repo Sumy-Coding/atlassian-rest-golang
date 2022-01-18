@@ -11,6 +11,7 @@ func main() {
 	now := time.Now()
 	locUrl := "http://localhost:7150"
 	pageServ := serv.PageService{}
+	labServ := serv.LabelService{}
 	ranServ := serv.RandService{}
 	tokService := serv.TokenService{}
 
@@ -23,7 +24,7 @@ func main() {
 	ranServ.RandomString(10)
 
 	// == Get Page
-	//fmt.Println(pageServ.GetPage(locUrl, lToken, "1474565"))
+	fmt.Println(pageServ.GetPage(locUrl, lToken, "1474565"))
 
 	// === Children
 	//child := pageServ.GetSpacePages(locUrl, lToken, "DEV")
@@ -62,7 +63,7 @@ func main() {
 	//pageServ.DownloadAttach(locUrl, 1671171)
 
 	// === GET labels
-	fmt.Println(pageServ.GetPageLabels(locUrl, lToken, "2719745"))
+	fmt.Println(labServ.GetPageLabels(locUrl, lToken, "2719745"))
 
 	// == END
 	fmt.Printf("Script took %d secs", time.Now().Sub(now).Seconds())
