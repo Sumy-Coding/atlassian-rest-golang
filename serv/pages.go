@@ -50,6 +50,8 @@ func (s PageService) GetPage(url string, tok string, id string) models.Content {
 	expand := "expand=space,body.storage,history,version"
 
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s?%s", url, id, expand)
+	log.Println("GET REQ URL is " + reqUrl)
+
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
@@ -68,7 +70,7 @@ func (s PageService) GetPage(url string, tok string, id string) models.Content {
 
 func (s PageService) GetChildren(url string, tok string, id string) models.ContentArray {
 
-	expand := "expand=body.storage,history,version"
+	expand := "expand=space,body.storage,history,version"
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/child/page?%s", url, id, expand)
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
@@ -314,33 +316,38 @@ func (s PageService) CopyPage(url string, tok string, pid string, parent string)
 	}
 
 	var content models.Content
-	s.CreatePage(url, tok, orPage.Space.Key, parent, ttl, orPage.Body.Storage.Value)
+	content = s.CreatePage(url, tok, orPage.Space.Key, parent, ttl, orPage.Body.Storage.Value)
 
 	return content
 
 }
 
-func (s PageService) CopyPageDescs(url string, tok string, pid string, parent string, nTitle string,
+func (s PageService) CopyPageDescs(url string, tok string, pid string, tgt string, nTitle string,
 	copyLabs bool, copyCo bool, copyAtt bool) []models.Content {
 	// todo - copyLabels, copyComments, copyAttaches
 
-	log.Println("Copying page " + pid)
 	content := make([]models.Content, 0)
 
-	//orPage := s.GetPage(url, tok, pid)
-	parPage := s.GetPage(url, tok, parent)
-	childs := s.GetChildren(url, tok, pid)
-	rootCp := s.CopyPage(url, tok, pid, parPage.Id)
+	//root := s.GetPage(url, tok, pid)
+	childs := s.GetChildren(url, tok, pid).Results
+	rootCp := s.CopyPage(url, tok, pid, tgt)
+	log.Printf("ROOT page %s copied as %s", pid, rootCp.Id)
 
-	for _, pg := range childs.Results {
-		//var ttl string	// todo - check current space or different
-		//if orPage.Space.Key == parPage.Space.Key {
-		//	ttl = "Copy of " + orPage.Title
-		//} else {
-		//	ttl = orPage.Title
-		//}
-		s.CopyPageDescs(url, tok, pg.Id, rootCp.Id, nTitle, copyLabs, copyCo, copyAtt)
-		cpPage := s.CopyPage(url, tok, pg.Id, rootCp.Id)
+	for _, child := range childs {
+		var ttl string
+		if nTitle == "" {
+			// todo - check current space or different
+			if child.Space.Key == rootCp.Space.Key {
+				ttl = "Copy of " + child.Title
+			} else {
+				ttl = child.Title
+			}
+		} else {
+			ttl = nTitle + child.Title
+		}
+		log.Println("Copying child page " + child.Id + " under " + rootCp.Id)
+		s.CopyPageDescs(url, tok, child.Id, rootCp.Id, ttl, copyLabs, copyCo, copyAtt)
+		cpPage := s.CopyPage(url, tok, child.Id, rootCp.Id)
 		content = append(content, cpPage)
 	}
 
