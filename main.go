@@ -22,15 +22,26 @@ func main() {
 
 	// == Get Page
 	//fmt.Println(pageServ.GetPage(locUrl, lToken, "1474565"))
+
 	// === Children
 	//child := pageServ.GetSpacePages(locUrl, lToken, "DEV")
 	//fmt.Println(child)
 
+	// === GET descendants
+	//for _, page := range pageServ.GetDescendants(locUrl, lToken, "65603", 200).Results {
+	//	fmt.Println(page)
+	//}
+
 	// === Create Pages
-	for i := 1; i < 15; i++ {
-		bod := ranServ.RandomString()
-		pageServ.CreatePage(locUrl, lToken, "DEV", "1769480", fmt.Sprintf("dev 1-2-1--%d", i), bod)
-	}
+	pageServ.CreatePage(locUrl, lToken, "DEV", "1769480", "t 333", ranServ.RandomString(10))
+	// == several
+	//for i := 1; i < 15; i++ {
+	//	bod := ranServ.RandomString()
+	//	pageServ.CreatePage(locUrl, lToken, "DEV", "1769480", fmt.Sprintf("dev 1-2-1--%d", i), bod)
+	//}
+
+	// == Edit Page
+	//fmt.Println(pageServ.UpdatePage(locUrl, lToken, "1769480", "lorem", "lorem lorem lorem"))
 
 	// ==== ADD attach
 

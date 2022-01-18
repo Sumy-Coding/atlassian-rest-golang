@@ -87,11 +87,11 @@ func (s PageService) GetChildren(url string, tok string, id string) models.Conte
 
 }
 
-func (s PageService) GetDescendants(url string, tok string, id string) models.ContentArray {
+func (s PageService) GetDescendants(url string, tok string, id string, lim int) models.ContentArray {
 
 	//expand := "?expand=body.storage,history,version"
 
-	reqUrl := fmt.Sprintf("%s/rest/api/content/search?cql=ancestor=%s&limit=300", url, id)
+	reqUrl := fmt.Sprintf("%s/rest/api/content/search?cql=ancestor=%s&limit=%d", url, id, lim)
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
@@ -266,6 +266,51 @@ func (s PageService) CreatePage(url string, tok string, key string, parent strin
 		log.Panicln(err2)
 	}
 	req, err := http.NewRequest("POST", reqUrl, bytes.NewReader(mrsCtn))
+	//req.SetBasicAuth("admin", "admin")
+	//resp, err := http.Get(reqUrl)
+	req.Header.Add("Authorization", "Basic "+tok)
+	req.Header.Add("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	var content models.Content
+	bts, err := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(bts, &content)
+	fmt.Println(string(bts))
+
+	return content
+
+}
+
+func (s PageService) UpdatePage(url string, tok string, pid string, find string, repl string) models.Content {
+
+	client := &http.Client{
+		CheckRedirect: redirectPolicyFunc,
+	}
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%s", url, pid)
+	log.Println("Request URL = " + reqUrl)
+	log.Println("Edited pageID = " + pid)
+
+	page := s.GetPage(url, tok, pid)
+	pBody := page.Body.Storage.Value
+	fBody := strings.Replace(pBody, find, repl, -1)
+	cntb := models.EditPage{
+		Id:    page.Id,
+		Title: page.Title,
+		Type:  "page",
+		Body: models.Body{
+			Storage: models.Storage{
+				Representation: "storage", Value: fBody},
+		},
+		Version: models.VersionE{Number: page.Version.Number + 1},
+	}
+	mrsCtn, err2 := json.Marshal(cntb)
+	if err2 != nil {
+		log.Panicln(err2)
+	}
+	req, err := http.NewRequest("PUT", reqUrl, bytes.NewReader(mrsCtn))
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)

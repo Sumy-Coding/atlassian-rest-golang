@@ -8,12 +8,17 @@ type CreatePage struct {
 	Body      Body       `json:"body"`
 }
 
+type VersionE struct {
+	Number int `json:"number"`
+}
+
 type EditPage struct {
-	Id    string `json:"id"`
-	Title string `json:"title"`
-	//Type  string `json:"type"`
-	Space Space `json:"space"`
-	Body  Body  `json:"body"`
+	Id      string   `json:"id"`
+	Title   string   `json:"title"`
+	Type    string   `json:"type"`
+	Space   Space    `json:"space"`
+	Body    Body     `json:"body"`
+	Version VersionE `json:"version"`
 }
 
 type Space struct {
@@ -82,15 +87,21 @@ type Ancestor struct {
 	Id string `json:"id"`
 }
 
+type Expandable struct {
+	//Container Content `json:"container"`
+	Operations string `json:"operations"`
+}
+
 type Content struct {
-	Id        string `json:"id"`
-	Type      string `json:"type"`
-	Status    string `json:"status"`
-	Title     string `json:"title"`
-	Body      Body   `json:"body"`
-	Space     Space  `json:"space"`
-	History   ContentHistory
-	Links     GenericLinks `json:"_links"`
-	Ancestors []Ancestor   `json:"ancestors"`
-	//Expandable _expandable  `json:"_expandable"`
+	Id         string         `json:"id"`
+	Type       string         `json:"type"`
+	Status     string         `json:"status"`
+	Title      string         `json:"title"`
+	Body       Body           `json:"body"`
+	Version    Version        `json:"version"`
+	Space      Space          `json:"space"`
+	History    ContentHistory `json:"history"`
+	Links      GenericLinks   `json:"_links"`
+	Ancestors  []Ancestor     `json:"ancestors"`
+	Expandable Expandable     `json:"_expandable"`
 }
