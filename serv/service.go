@@ -59,8 +59,8 @@ func (s PageService) GetPage(url string, tok string, id string) models.Content {
 		log.Panicln(err)
 	}
 	var content models.Content
-	bytes, err := ioutil.ReadAll(resp.Body)
-	err = json.Unmarshal(bytes, &content)
+	bts, err := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(bts, &content)
 
 	return content
 
@@ -80,8 +80,8 @@ func (s PageService) GetChildren(url string, tok string, id string) models.Conte
 		log.Panicln(err)
 	}
 	var cnArray models.ContentArray
-	bytes, err := ioutil.ReadAll(resp.Body)
-	err = json.Unmarshal(bytes, &cnArray)
+	bts, err := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(bts, &cnArray)
 
 	return cnArray
 
@@ -102,8 +102,8 @@ func (s PageService) GetDescendants(url string, tok string, id string, lim int) 
 		log.Panicln(err)
 	}
 	var cnArray models.ContentArray
-	bytes, err := ioutil.ReadAll(resp.Body)
-	err = json.Unmarshal(bytes, &cnArray)
+	bts, err := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(bts, &cnArray)
 
 	return cnArray
 
@@ -112,6 +112,26 @@ func (s PageService) GetDescendants(url string, tok string, id string, lim int) 
 func (s PageService) PageContains(url string, tok string, id string, find string) bool {
 	value := s.GetPage(url, tok, id).Body.Storage.Value
 	return strings.Contains(value, find)
+}
+
+func (s PageService) GetPageLabels(url string, tok string, pid string) models.LabelArray {
+
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/label", url, pid)
+	req, err := http.NewRequest("GET", reqUrl, nil)
+	//req.SetBasicAuth("admin", "admin")
+	//resp, err := http.Get(reqUrl)
+	req.Header.Add("Authorization", "Basic "+tok)
+	client := myClient(reqUrl, tok)
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Panicln(err)
+	}
+	var cnArray models.LabelArray
+	bts, err := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(bts, &cnArray)
+
+	return cnArray
+
 }
 
 func (s PageService) GetSpacePages(url string, tok string, key string) models.ContentArray {
@@ -306,11 +326,11 @@ func (s PageService) UpdatePage(url string, tok string, pid string, find string,
 		},
 		Version: models.VersionE{Number: page.Version.Number + 1},
 	}
-	mrsCtn, err2 := json.Marshal(cntb)
+	pageBytes, err2 := json.Marshal(cntb)
 	if err2 != nil {
 		log.Panicln(err2)
 	}
-	req, err := http.NewRequest("PUT", reqUrl, bytes.NewReader(mrsCtn))
+	req, err := http.NewRequest("PUT", reqUrl, bytes.NewReader(pageBytes))
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)

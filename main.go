@@ -20,6 +20,8 @@ func main() {
 	locPass, _ := os.LookupEnv("CONF_LOC_P")
 	lToken := tokService.GetToken(locUser, locPass)
 
+	ranServ.RandomString(10)
+
 	// == Get Page
 	//fmt.Println(pageServ.GetPage(locUrl, lToken, "1474565"))
 
@@ -33,7 +35,7 @@ func main() {
 	//}
 
 	// === Create Pages
-	pageServ.CreatePage(locUrl, lToken, "DEV", "1769480", "t 333", ranServ.RandomString(10))
+	//pageServ.CreatePage(locUrl, lToken, "DEV", "2719745", "t 333", ranServ.RandomString(10))
 	// == several
 	//for i := 1; i < 15; i++ {
 	//	bod := ranServ.RandomString()
@@ -41,7 +43,7 @@ func main() {
 	//}
 
 	// == Edit Page
-	//fmt.Println(pageServ.UpdatePage(locUrl, lToken, "1769480", "lorem", "lorem lorem lorem"))
+	//fmt.Println(pageServ.UpdatePage(locUrl, lToken, "2719745", "lorem", "lorem lorem lorem"))
 
 	// ==== ADD attach
 
@@ -58,6 +60,9 @@ func main() {
 
 	// === Download attach
 	//pageServ.DownloadAttach(locUrl, 1671171)
+
+	// === GET labels
+	fmt.Println(pageServ.GetPageLabels(locUrl, lToken, "2719745"))
 
 	// == END
 	fmt.Printf("Script took %d secs", time.Now().Sub(now).Seconds())

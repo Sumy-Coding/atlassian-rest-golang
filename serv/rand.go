@@ -18,7 +18,7 @@ func (r RandService) RandomString(leng int) string {
 	var fStr string
 	for i := 0; i < leng; i++ {
 		rInt := rand.Intn(len(split) - 1)
-		fStr = fStr + split[rInt]
+		fStr = fStr + " " + split[rInt]
 	}
 	return fStr
 }

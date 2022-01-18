@@ -92,6 +92,20 @@ type Expandable struct {
 	Operations string `json:"operations"`
 }
 
+type Label struct {
+	Id     string `json:"id"`
+	Prefix string `json:"prefix"`
+	Name   string `json:"name"`
+}
+
+type LabelArray struct {
+	Results []Label `json:"results"`
+	start   int
+	limit   int
+	size    int
+	Links   GenericLinks `json:"_links"`
+}
+
 type Content struct {
 	Id         string         `json:"id"`
 	Type       string         `json:"type"`
