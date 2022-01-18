@@ -38,13 +38,15 @@ func myClient(url string, token string) *http.Client {
 	return client
 }
 
-func (s PageService) GetPage(url string, id int64) models.Content {
+func (s PageService) GetPage(url string, id string) models.Content {
 
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
 
-	reqUrl := fmt.Sprintf("%s/rest/api/content/%d", url, id)
+	expand := "?expand=body.storage,history,version"
+
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/%s", url, id, expand)
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
@@ -61,9 +63,10 @@ func (s PageService) GetPage(url string, id int64) models.Content {
 
 }
 
-func (s PageService) GetChildren(url string, id int64) models.ContentArray {
+func (s PageService) GetChildren(url string, id string) models.ContentArray {
 
-	reqUrl := fmt.Sprintf("%s/rest/api/content/%d/child/page", url, id)
+	expand := "?expand=body.storage,history,version"
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/child/page/%s", url, id, expand)
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
@@ -81,9 +84,11 @@ func (s PageService) GetChildren(url string, id int64) models.ContentArray {
 
 }
 
-func (s PageService) GetDescendants(url string, id int64) models.ContentArray {
+func (s PageService) GetDescendants(url string, id string) models.ContentArray {
 
-	reqUrl := fmt.Sprintf("%s/rest/api/content/search?cql=ancestor=%d&limit=300", url, id)
+	//expand := "?expand=body.storage,history,version"
+
+	reqUrl := fmt.Sprintf("%s/rest/api/content/search?cql=ancestor=%s&limit=300", url, id)
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
@@ -101,14 +106,15 @@ func (s PageService) GetDescendants(url string, id int64) models.ContentArray {
 
 }
 
-func (s PageService) PageContains(url string, id int64, find string) bool {
+func (s PageService) PageContains(url string, id string, find string) bool {
 	value := s.GetPage(url, id).Body.Storage.Value
 	return strings.Contains(value, find)
 }
 
 func (s PageService) GetSpacePages(url string, key string) models.ContentArray {
 
-	reqUrl := fmt.Sprintf("%s/rest/api/content?type=page&spaceKey=%s&limit=300", url, key)
+	expand := "expand=body.storage,history,version"
+	reqUrl := fmt.Sprintf("%s/rest/api/content?type=page&spaceKey=%s&%s&limit=300", url, key, expand)
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
@@ -148,7 +154,7 @@ func (s PageService) GetSpaceBlogs(url string, key string) models.ContentArray {
 
 }
 
-func (s PageService) DeletePageLabels(url string, id int64, labels []string) string {
+func (s PageService) DeletePageLabels(url string, id string, labels []string) string {
 	for _, lab := range labels {
 		reqUrl := fmt.Sprintf("%s/rest/api/content/%d/label/%s", url, id, lab) //limit=300
 		req, err := http.NewRequest("DELETE", reqUrl, nil)
@@ -166,7 +172,7 @@ func (s PageService) DeletePageLabels(url string, id int64, labels []string) str
 	return "labels deleted "
 }
 
-func (s PageService) DeletePage(url string, id int64) models.Content {
+func (s PageService) DeletePage(url string, id string) models.Content {
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%d", url, id) //limit=300
 	req, err := http.NewRequest("DELETE", reqUrl, nil)
 	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
@@ -213,8 +219,8 @@ func (s PageService) CreateSpace(url string, key string) []string {
 		CheckRedirect: redirectPolicyFunc,
 	}
 
-	reqUrl := fmt.Sprintf("%s/plugins/servlet/scroll-office/api/templates?spaceKey=%s", url, key)
-	req, err := http.NewRequest("GET", reqUrl, nil)
+	reqUrl := fmt.Sprintf("%s/rest/api/space", url)
+	req, err := http.NewRequest("POST", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
@@ -232,7 +238,7 @@ func (s PageService) CreateSpace(url string, key string) []string {
 }
 
 //createPage(CONF_URL, TOKEN, space, parentId, title, body)
-func (s PageService) CreatePage(url string, key string, parent int64, title string, bd string) models.Content {
+func (s PageService) CreatePage(url string, key string, parent string, title string, bd string) models.Content {
 
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
@@ -274,13 +280,14 @@ func (s PageService) CreatePage(url string, key string, parent int64, title stri
 
 }
 
-func (s PageService) GetPageAttaches(url string, pid int64) models.ContentArray {
+func (s PageService) GetPageAttaches(url string, pid string) models.ContentArray {
 
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
 
-	reqUrl := fmt.Sprintf("%s/rest/api/content/%d/child/attachment", url, pid)
+	expand := "expand=body.storage,history,version"
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/child/attachment?%s", url, pid, expand)
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
@@ -299,13 +306,14 @@ func (s PageService) GetPageAttaches(url string, pid int64) models.ContentArray 
 
 }
 
-func (s PageService) GetAttach(url string, aid int64) models.Content {
+func (s PageService) GetAttach(url string, aid string) models.Content {
 
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
 
-	reqUrl := fmt.Sprintf("%s/rest/api/content/%d", url, aid)
+	expand := "expand=body.storage,history,version"
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%s?%s", url, aid, expand)
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
@@ -324,7 +332,7 @@ func (s PageService) GetAttach(url string, aid int64) models.Content {
 
 }
 
-func (s PageService) DownloadAttach(url string, atId int64) string {
+func (s PageService) DownloadAttach(url string, atId string) string {
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
@@ -359,13 +367,13 @@ func (s PageService) DownloadAttach(url string, atId int64) string {
 	return filePath
 }
 
-func (s PageService) AddFileAsAttach(url string, pid int64, atId int64) string {
+func (s PageService) AddFileAsAttach(url string, pid string, atId string) string {
 
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
 
-	reqUrl := fmt.Sprintf("%s/rest/api/content/%d/child/attachment", url, pid)
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/child/attachment", url, pid)
 
 	//req, err := http.NewRequest("POST", reqUrl, bytes.NewReader(mrsCtn))
 	// =========

@@ -22,13 +22,13 @@ func main() {
 
 	// ==== ADD attach
 
-	//for _, att := range pageServ.GetPageAttaches(locUrl, 1474565).Results {
-	//	fmt.Println(att.Id)
-	//	//pageServ.AddFileAsAttach(locUrl, 1474561, att.Id)
-	//}
+	for _, att := range pageServ.GetPageAttaches(locUrl, "1474565").Results {
+		fmt.Println(att.Id)
+		pageServ.AddFileAsAttach(locUrl, "1474561", att.Id)
+	}
 
 	// ==== Get attaches
-	fmt.Println(pageServ.GetPageAttaches(locUrl, 1474565))
+	//fmt.Println(pageServ.GetPageAttaches(locUrl, 1474565))
 
 	// === GET attach
 	//fmt.Println(pageServ.GetAttach(locUrl, 1671169))

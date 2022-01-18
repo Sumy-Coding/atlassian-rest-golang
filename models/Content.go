@@ -63,7 +63,7 @@ type Body struct {
 }
 
 type Ancestor struct {
-	Id int64 `json:"id"`
+	Id string `json:"id"`
 }
 
 type Content struct {
