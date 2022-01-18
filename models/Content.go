@@ -67,7 +67,7 @@ type Ancestor struct {
 }
 
 type Content struct {
-	Id        int64  `json:"id"`
+	Id        string `json:"id"`
 	Type      string `json:"type"`
 	Status    string `json:"status"`
 	Title     string `json:"title"`

@@ -1,8 +1,12 @@
 package models
 
 type GenericLinks struct {
-	Web string
-	UI  string
+	Webui      string
+	Download   string
+	Collection string
+	Base       string
+	Context    string
+	Self       string
 }
 
 type ContentArray struct {

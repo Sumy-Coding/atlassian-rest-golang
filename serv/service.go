@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"log"
 	"mime/multipart"
@@ -323,40 +324,83 @@ func (s PageService) GetAttach(url string, aid int64) models.Content {
 
 }
 
-func (s PageService) AddFileAsAttach(url string, fn string, atId int64) string {
+func (s PageService) DownloadAttach(url string, atId int64) string {
+	client := &http.Client{
+		CheckRedirect: redirectPolicyFunc,
+	}
+	attach := s.GetAttach(url, atId)
+
+	fileDir, _ := os.Getwd()
+	fName := attach.Title
+
+	// download link
+	dwLink := attach.Links.Base + attach.Links.Download
+
+	//btb := &bytes.Buffer{} // byte buffer
+	//mime.ParseMediaType()
+
+	//reader := multipart.NewReader(btb, "")
+	//reader.NextPart()
+
+	r1, _ := http.NewRequest("GET", dwLink, nil)
+	r1.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+	//r1.Header.Add("Content-Type", writer.FormDataContentType())
+	r1.Header.Add("X-Atlassian-Token", "nocheck")
+
+	resp, err := client.Do(r1)
+	fmt.Println(resp, err) // log response
+
+	bts, err := ioutil.ReadAll(resp.Body)
+	err = os.WriteFile(fName, bts, fs.ModeAppend)
+
+	filePath := path.Join(fileDir, fName) // file path
+	fmt.Println("File path is " + filePath)
+
+	return filePath
+}
+
+func (s PageService) AddFileAsAttach(url string, pid int64, atId int64) string {
 
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
 
-	reqUrl := fmt.Sprintf("%s/rest/api/content/%d/child/attachment", url, atId)
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%d/child/attachment", url, pid)
 
 	//req, err := http.NewRequest("POST", reqUrl, bytes.NewReader(mrsCtn))
-	//req.SetBasicAuth("admin", "admin")
-	//resp, err := http.Get(reqUrl)
-	//req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
-	//req.Header.Add("Content-Type", "application/json")
-	//ioutil.WriteFile()
 	// =========
 
-	//attach._links.base + attach._links.download
+	// get attach
+	attach := s.GetAttach(url, atId)
 
 	fileDir, _ := os.Getwd()
-	fileName := fn
-	filePath := path.Join(fileDir, fileName)
+	fName := attach.Title
+	filePath := path.Join(fileDir, fName) // equals atFilePath
+	fmt.Println("File path is " + filePath)
 
-	fl, _ := os.Open(filePath)
+	atFilePath := s.DownloadAttach(url, atId) // attach.Id = nil
+
+	//os.WriteFile(fName)
+	//ioutil.WriteFile(fName)
+	// save attach
+	fl, _ := os.Open(atFilePath) // atFilePath
 	defer fl.Close()
 
 	btb := &bytes.Buffer{} // byte buffer
 	writer := multipart.NewWriter(btb)
 	part, _ := writer.CreateFormFile("file", filepath.Base(fl.Name()))
 	io.Copy(part, fl)
-	writer.Close()
+	clErr := writer.Close()
+	if clErr != nil {
+		log.Panicln(clErr)
+	}
 
 	r, _ := http.NewRequest("POST", reqUrl, btb)
+	cntType := writer.FormDataContentType()
+	fmt.Println("Content type is " + cntType)
+
 	r.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
-	r.Header.Add("Content-Type", writer.FormDataContentType())
+	r.Header.Add("Content-Type", cntType)
 	r.Header.Add("X-Atlassian-Token", "nocheck")
 	//client := &http.Client{}
 	resp, err := client.Do(r)
@@ -372,6 +416,8 @@ func (s PageService) AddFileAsAttach(url string, fn string, atId int64) string {
 	bts, err := ioutil.ReadAll(resp.Body)
 	//err = json.Unmarshal(bts, &content)
 	fmt.Println(string(bts))
+	// delete attach
+	defer os.Remove(atFilePath)
 
 	return "attachment added " + string(bts)
 
