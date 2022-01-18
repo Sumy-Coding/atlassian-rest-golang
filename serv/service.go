@@ -6,9 +6,14 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -265,5 +270,56 @@ func (s PageService) CreatePage(url string, key string, parent int64, title stri
 	fmt.Println(string(bts))
 
 	return content
+
+}
+
+func (s PageService) AddFileAsAttach(url string, fn string, atId int64) string {
+
+	client := &http.Client{
+		CheckRedirect: redirectPolicyFunc,
+	}
+
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%d/child/attachment", url, atId)
+
+	//req, err := http.NewRequest("POST", reqUrl, bytes.NewReader(mrsCtn))
+	//req.SetBasicAuth("admin", "admin")
+	//resp, err := http.Get(reqUrl)
+	//req.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+	//req.Header.Add("Content-Type", "application/json")
+	//ioutil.WriteFile()
+	// =========
+
+	fileDir, _ := os.Getwd()
+	fileName := fn
+	filePath := path.Join(fileDir, fileName)
+
+	fl, _ := os.Open(filePath)
+	defer fl.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, _ := writer.CreateFormFile("file", filepath.Base(fl.Name()))
+	io.Copy(part, fl)
+	writer.Close()
+
+	r, _ := http.NewRequest("POST", reqUrl, body)
+	r.Header.Add("Authorization", "Basic "+basicAuth("admin", "admin"))
+	r.Header.Add("Content-Type", writer.FormDataContentType())
+	//client := &http.Client{}
+	resp, err := client.Do(r)
+	//if err != nil {
+	//	log.Panicln(err)
+	//}
+	/// ====
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	//var content models.Content
+	bts, err := ioutil.ReadAll(resp.Body)
+	//err = json.Unmarshal(bts, &content)
+	fmt.Println(string(bts))
+
+	return "attachment added " + string(bts)
 
 }
