@@ -3,6 +3,7 @@ package main
 import (
 	"confluence-rest-golang/serv"
 	"fmt"
+	"log"
 	"os"
 	"time"
 )
@@ -12,7 +13,7 @@ func main() {
 	locUrl := "http://localhost:7151"
 	pageServ := serv.PageService{}
 	//labServ := serv.LabelService{}
-	spaceServ := serv.SpaceService{}
+	//spaceServ := serv.SpaceService{}
 	ranServ := serv.RandService{}
 	tokService := serv.TokenService{}
 
@@ -25,7 +26,7 @@ func main() {
 	ranServ.RandomString(10)
 
 	// == Get Page
-	fmt.Println(pageServ.GetPage(locUrl, lToken, "65611"))
+	//fmt.Println(pageServ.GetPage(locUrl, lToken, "65611"))
 
 	// === Children
 	//child := pageServ.GetSpacePages(locUrl, lToken, "DEV")
@@ -40,15 +41,27 @@ func main() {
 	//pageServ.CreatePage(locUrl, lToken, "DEV", "2719745", "t 333", ranServ.RandomString(10))
 	// == several
 	//for i := 1; i < 15; i++ {
-	//	bod := ranServ.RandomString()
-	//	pageServ.CreatePage(locUrl, lToken, "DEV", "1769480", fmt.Sprintf("dev 1-2-1--%d", i), bod)
+	//	bod := ranServ.RandomString(15)
+	//	pageServ.CreatePage(locUrl, lToken, "DEV3", "66221", fmt.Sprintf("DEV3 - %d", i), bod)
 	//}
+
+	// COMPLEX HIERARCHY
+
+	var count int
+	for _, page := range pageServ.GetChildren(locUrl, lToken, "66221").Results {
+		for i := 1; i < 40; i++ {
+			bod := ranServ.RandomString(50)
+			pageServ.CreatePage(locUrl, lToken, "DEV3", page.Id, fmt.Sprintf("%s - %d", page.Title, i), bod)
+			count += i
+		}
+	}
+	log.Printf("%d pages created", count)
 
 	// === GET space
 	//fmt.Println(spaceServ.GetSpace(locUrl, lToken, "DEV"))
 
 	// === CREATE SPACE
-	fmt.Println(spaceServ.CreateSpace(locUrl, lToken, "DEV2", "DEV2"))
+	//fmt.Println(spaceServ.CreateSpace(locUrl, lToken, "DEV2", "DEV2"))
 
 	// == Edit Page
 	//fmt.Println(pageServ.UpdatePage(locUrl, lToken, "2719745", "lorem", "lorem lorem lorem"))

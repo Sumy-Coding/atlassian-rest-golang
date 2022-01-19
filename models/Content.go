@@ -1,11 +1,11 @@
 package models
 
 type CreatePage struct {
-	Type      string     `json:"type"`
-	Title     string     `json:"title"`
-	Ancestors []Ancestor `json:"ancestors"`
-	Space     Space      `json:"space"`
-	Body      Body       `json:"body"`
+	Type            string          `json:"type"`
+	Title           string          `json:"title"`
+	Ancestors       []Ancestor      `json:"ancestors"`
+	CreatePageSpace CreatePageSpace `json:"space"`
+	Body            Body            `json:"body"`
 }
 
 type VersionE struct {

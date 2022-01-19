@@ -229,7 +229,7 @@ func (s PageService) CreatePage(url string, tok string, key string, parent strin
 		//Id:    "",
 		Type:  "page",
 		Title: title,
-		Space: models.Space{
+		CreatePageSpace: models.CreatePageSpace{
 			Key: key,
 		}, Body: models.Body{
 			Storage: models.Storage{
