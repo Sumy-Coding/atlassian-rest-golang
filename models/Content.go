@@ -21,11 +21,16 @@ type EditPage struct {
 	Version VersionE `json:"version"`
 }
 
+type Metadata struct {
+	Labels LabelArray `json:"labels"`
+}
+
 type Space struct {
-	Id   int64  `json:"id"`
-	Key  string `json:"key"`
-	Name string `json:"name"`
-	Type string `json:"type"`
+	Id       int64    `json:"id"`
+	Key      string   `json:"key"`
+	Name     string   `json:"name"`
+	Type     string   `json:"type"`
+	Metadata Metadata `json:"metadata"`
 }
 
 type Icon struct {

@@ -216,32 +216,6 @@ func (s PageService) ScrollTemplates(url string, tok string, key string) []strin
 
 }
 
-// todo
-
-func (s PageService) CreateSpace(url string, tok string, key string) []string {
-
-	client := &http.Client{
-		CheckRedirect: redirectPolicyFunc,
-	}
-
-	reqUrl := fmt.Sprintf("%s/rest/api/space", url)
-	req, err := http.NewRequest("POST", reqUrl, nil)
-	//req.SetBasicAuth("admin", "admin")
-	//resp, err := http.Get(reqUrl)
-	req.Header.Add("Authorization", "Basic "+tok)
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Panicln(err)
-	}
-	rspb, err2 := ioutil.ReadAll(resp.Body)
-	if err2 != nil {
-		log.Println(err2)
-	}
-	fmt.Println("Response is " + string(rspb))
-	return nil
-
-}
-
 //createPage(CONF_URL, TOKEN, space, parentId, title, body)
 func (s PageService) CreatePage(url string, tok string, key string, parent string, title string, bd string) models.Content {
 

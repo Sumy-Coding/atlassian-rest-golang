@@ -12,6 +12,7 @@ func main() {
 	locUrl := "http://localhost:7151"
 	pageServ := serv.PageService{}
 	//labServ := serv.LabelService{}
+	spaceServ := serv.SpaceService{}
 	ranServ := serv.RandService{}
 	tokService := serv.TokenService{}
 
@@ -42,6 +43,12 @@ func main() {
 	//	bod := ranServ.RandomString()
 	//	pageServ.CreatePage(locUrl, lToken, "DEV", "1769480", fmt.Sprintf("dev 1-2-1--%d", i), bod)
 	//}
+
+	// === GET space
+	//fmt.Println(spaceServ.GetSpace(locUrl, lToken, "DEV"))
+
+	// === CREATE SPACE
+	fmt.Println(spaceServ.CreateSpace(locUrl, lToken, "DEV2", "DEV2"))
 
 	// == Edit Page
 	//fmt.Println(pageServ.UpdatePage(locUrl, lToken, "2719745", "lorem", "lorem lorem lorem"))
