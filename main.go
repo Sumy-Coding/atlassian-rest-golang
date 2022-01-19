@@ -3,7 +3,6 @@ package main
 import (
 	"confluence-rest-golang/serv"
 	"fmt"
-	"log"
 	"os"
 	"time"
 )
@@ -38,24 +37,23 @@ func main() {
 	//}
 
 	// === Create Pages
-	//pageServ.CreatePage(locUrl, lToken, "DEV", "2719745", "t 333", ranServ.RandomString(10))
+	//pageServ.CreateContent(locUrl, lToken, "DEV", "2719745", "t 333", ranServ.RandomString(10))
 	// == several
-	//for i := 1; i < 15; i++ {
-	//	bod := ranServ.RandomString(15)
-	//	pageServ.CreatePage(locUrl, lToken, "DEV3", "66221", fmt.Sprintf("DEV3 - %d", i), bod)
-	//}
+	for i := 1; i < 15; i++ {
+		bod := ranServ.RandomString(15)
+		pageServ.CreateContent(locUrl, lToken, "page", "DEV3", "66221", fmt.Sprintf("DEV3 - %d", i), bod)
+	}
 
 	// COMPLEX HIERARCHY
-
-	var count int
-	for _, page := range pageServ.GetChildren(locUrl, lToken, "66221").Results {
-		for i := 1; i < 40; i++ {
-			bod := ranServ.RandomString(50)
-			pageServ.CreatePage(locUrl, lToken, "DEV3", page.Id, fmt.Sprintf("%s - %d", page.Title, i), bod)
-			count += i
-		}
-	}
-	log.Printf("%d pages created", count)
+	//var count int
+	//for _, page := range pageServ.GetChildren(locUrl, lToken, "66221").Results {
+	//	for i := 1; i < 40; i++ {
+	//		bod := ranServ.RandomString(50)
+	//		pageServ.CreateContent(locUrl, lToken, "page", "DEV3", page.Id, fmt.Sprintf("%s - %d", page.Title, i), bod)
+	//		count += i
+	//	}
+	//}
+	//log.Printf("%d pages created", count)
 
 	// === GET space
 	//fmt.Println(spaceServ.GetSpace(locUrl, lToken, "DEV"))
