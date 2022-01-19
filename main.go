@@ -3,7 +3,6 @@ package main
 import (
 	"confluence-rest-golang/serv"
 	"fmt"
-	"log"
 	"os"
 	"time"
 )
@@ -11,8 +10,8 @@ import (
 func main() {
 	now := time.Now()
 	locUrl := "http://localhost:7150"
-	pageServ := serv.PageService{}
-	//labServ := serv.LabelService{}
+	//pageServ := serv.PageService{}
+	labServ := serv.LabelService{}
 	ranServ := serv.RandService{}
 	tokService := serv.TokenService{}
 
@@ -49,7 +48,7 @@ func main() {
 
 	// == COPY page
 	//pageServ.CopyPage(locUrl, lToken, "2719747", "2719745")
-	log.Println(pageServ.CopyPageDescs(locUrl, lToken, "2719753", "2719764", "", false, false, false))
+	//log.Println(pageServ.CopyPageDescs(locUrl, lToken, "2719753", "2719764", "", false, false, false))
 
 	// ==== ADD attach
 	//for _, att := range pageServ.GetPageAttaches(locUrl, "1474565").Results {
@@ -68,6 +67,10 @@ func main() {
 
 	// === GET labels
 	//fmt.Println(labServ.GetPageLabels(locUrl, lToken, "2719745"))
+
+	// === COPY labels
+	labels := []string{"aaa", "bbb"}
+	labServ.AddLabels(locUrl, lToken, "2719762", labels)
 
 	// == END
 	fmt.Printf("Script took %d secs", time.Now().Sub(now).Seconds())

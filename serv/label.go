@@ -33,10 +33,19 @@ func (l LabelService) GetPageLabels(url string, tok string, pid string) models.L
 
 }
 
-func (l LabelService) AddLabel(url string, tok string, pid string, labels []string) models.LabelArray {
+func (l LabelService) AddLabels(url string, tok string, pid string, labels []string) models.LabelArray {
 
+	log.Println("Adding labels to " + pid)
+
+	lbls := make([]models.Label, 0)
+
+	for _, l := range labels {
+		lbObj := models.Label{Prefix: "global", Name: l}
+		lbls = append(lbls, lbObj)
+	}
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/label", url, pid)
-	lJson, err := json.Marshal(labels)
+
+	lJson, err := json.Marshal(lbls)
 	req, err := http.NewRequest("POST", reqUrl, bytes.NewReader(lJson))
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
@@ -54,6 +63,22 @@ func (l LabelService) AddLabel(url string, tok string, pid string, labels []stri
 	return label
 
 }
+
+//func (l LabelService) CopyLabels(url string, tok string, pid string, tgt string) models.LabelArray {
+//
+//	log.Printf("Copying %s page labels to %s", pid, tgt)
+//
+//	labels := l.GetPageLabels(url, tok, pid).Results
+//
+//	l.AddLabel(url, tok, tgt, labels)
+//
+//	var label models.LabelArray
+//	bts, err := ioutil.ReadAll(resp.Body)
+//	err = json.Unmarshal(bts, &label)
+//
+//	return label
+//
+//}
 
 //DELETE /rest/api/content/{id}/label/{label}
 
