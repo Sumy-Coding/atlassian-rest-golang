@@ -93,5 +93,5 @@ func main() {
 	//labServ.AddLabels(locUrl, lToken, "2719762", labels)
 
 	// == END
-	fmt.Printf("Script took %f secs", time.Now().Sub(start).Seconds())
+	fmt.Printf("Operations took '%f' secs", time.Now().Sub(start).Seconds())
 }

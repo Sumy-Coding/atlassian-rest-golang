@@ -61,6 +61,13 @@ func (s PageService) GetPage(url string, tok string, id string) models.Content {
 	if err != nil {
 		log.Panicln(err)
 	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Panicln(err)
+		}
+	}(resp.Body)
+
 	var content models.Content
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &content)
@@ -111,6 +118,8 @@ func (s PageService) GetDescendants(url string, tok string, id string, lim int) 
 	if err != nil {
 		log.Panicln(err)
 	}
+	defer resp.Body.Close() // close request's body
+
 	var cnArray models.ContentArray
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &cnArray)
@@ -137,6 +146,7 @@ func (s PageService) GetSpacePages(url string, tok string, key string) models.Co
 	if err != nil {
 		log.Panicln(err)
 	}
+	defer resp.Body.Close()
 	var cnArray models.ContentArray
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &cnArray)
@@ -155,6 +165,7 @@ func (p PageService) GetSpacePagesByLabel(url string, tok string, key string, lb
 	if err != nil {
 		log.Panicln(err)
 	}
+	defer resp.Body.Close()
 	var cnArray models.ContentArray
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &cnArray)
@@ -173,6 +184,7 @@ func (s PageService) GetSpaceBlogs(url string, tok string, key string) models.Co
 	if err != nil {
 		log.Panicln(err)
 	}
+	defer resp.Body.Close()
 	var cnArray models.ContentArray
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &cnArray)
@@ -191,6 +203,7 @@ func (s PageService) DeletePageLabels(url string, tok string, id string, labels 
 		if err != nil {
 			log.Panicln(err)
 		}
+		defer resp.Body.Close()
 		fmt.Println(resp)
 		//bts, err := ioutil.ReadAll(resp.Body)
 		//err = json.Unmarshal(bytes, &cnArray)
@@ -208,9 +221,10 @@ func (s PageService) DeletePage(url string, tok string, id string) models.Conten
 	if err != nil {
 		log.Panicln(err)
 	}
+	defer resp.Body.Close()
 	var cnt models.Content
-	bytes, err := ioutil.ReadAll(resp.Body)
-	err = json.Unmarshal(bytes, &cnt)
+	bts, err := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(bts, &cnt)
 	return cnt
 }
 
@@ -230,6 +244,7 @@ func (s PageService) ScrollTemplates(url string, tok string, key string) []strin
 	if err != nil {
 		log.Panicln(err)
 	}
+	defer resp.Body.Close()
 	tms := make([]string, 0)
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &tms)
@@ -272,7 +287,7 @@ func (s PageService) CreateContent(url string, tok string, ctype string, key str
 	if err != nil {
 		log.Panicln(err)
 	}
-
+	defer resp.Body.Close()
 	var content models.Content
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &content)
@@ -425,7 +440,7 @@ func (s PageService) UpdatePage(url string, tok string, pid string, find string,
 	if err != nil {
 		log.Panicln(err)
 	}
-
+	defer resp.Body.Close()
 	var content models.Content
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &content)
@@ -451,7 +466,7 @@ func (s PageService) GetPageAttaches(url string, tok string, pid string) models.
 	if err != nil {
 		log.Panicln(err)
 	}
-
+	defer resp.Body.Close()
 	var carr models.ContentArray
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &carr)
@@ -477,7 +492,7 @@ func (s PageService) GetAttach(url string, tok string, aid string) models.Conten
 	if err != nil {
 		log.Panicln(err)
 	}
-
+	defer resp.Body.Close()
 	var content models.Content
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &content)
@@ -511,7 +526,10 @@ func (s PageService) DownloadAttach(url string, tok string, atId string) string 
 	r1.Header.Add("X-Atlassian-Token", "nocheck")
 
 	resp, err := client.Do(r1)
-	fmt.Println(resp, err) // log response
+	if err != nil {
+		log.Panicln(err)
+	}
+	defer resp.Body.Close()
 
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = os.WriteFile(fName, bts, fs.ModeAppend)
@@ -523,6 +541,8 @@ func (s PageService) DownloadAttach(url string, tok string, atId string) string 
 }
 
 func (s PageService) AddFileAsAttach(url string, tok string, pid string, atId string) string {
+
+	log.Println("Adding attach to page " + pid)
 
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
@@ -574,7 +594,7 @@ func (s PageService) AddFileAsAttach(url string, tok string, pid string, atId st
 	if err != nil {
 		log.Panicln(err)
 	}
-
+	defer resp.Body.Close()
 	//var content models.Content
 	bts, err := ioutil.ReadAll(resp.Body)
 	//err = json.Unmarshal(bts, &content)
@@ -587,6 +607,7 @@ func (s PageService) AddFileAsAttach(url string, tok string, pid string, atId st
 }
 
 func (s PageService) GetComment(url string, tok string, cid string) models.Content {
+
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
@@ -601,7 +622,7 @@ func (s PageService) GetComment(url string, tok string, cid string) models.Conte
 	if err != nil {
 		log.Panicln(err)
 	}
-
+	defer resp.Body.Close()
 	var content models.Content
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &content)
