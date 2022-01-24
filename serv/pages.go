@@ -310,7 +310,7 @@ func (s PageService) CopyPage(url string, tok string, pid string, tid string,
 	//time.Sleep(time.Duration(sservice.ResponseTime) * time.Millisecond) // sleep till getting target parent
 	parPage := s.GetPage(url, tok, tid)
 
-	/* reqUrl := fmt.Sprintf("%s/rest/api/content", url)
+	/* reqUrl := fmt.Sprintf("%s/rest/api/createdPage", url)
 	ancts := []models.Ancestor{{Id: parent}} // parent
 	cntb := models.CreateContent{
 		//Id:    "",
@@ -331,23 +331,32 @@ func (s PageService) CopyPage(url string, tok string, pid string, tid string,
 		ttl = orPage.Title
 	}
 
-	var content models.Content
-	content = s.CreateContent(url, tok, "page", parPage.Space.Key, tid, ttl, orPage.Body.Storage.Value)
+	var createdPage models.Content
+	createdPage = s.CreateContent(url, tok, "page", parPage.Space.Key, tid, ttl, orPage.Body.Storage.Value)
 
+	// copy labels
 	if copyLabs {
 		lArr := labServ.GetPageLabels(url, tok, pid)
 		lbls := make([]string, 0)
 		for _, l := range lArr.Results {
 			lbls = append(lbls, l.Name)
 		}
-		labServ.AddLabels(url, tok, content.Id, lbls)
+		labServ.AddLabels(url, tok, createdPage.Id, lbls)
 	}
-
+	// attachment
 	if copyAtt {
-		s.GetAttach()
+		log.Printf("Copying %s page attachments", pid)
+		attaches := s.GetPageAttaches(url, tok, pid).Results // todo - can be more than 100 set currently
+		for _, att := range attaches {
+			s.CopyAttach(url, tok, createdPage.Id, att.Id)
+		}
+	}
+	// comments
+	if copyCo {
+		// todo
 	}
 
-	return content
+	return createdPage
 }
 
 func (s PageService) CopyPageDescs(url string, tok string, pid string, tgt string, nTitle string,
@@ -355,7 +364,7 @@ func (s PageService) CopyPageDescs(url string, tok string, pid string, tgt strin
 
 	// todo - copyLabels, copyComments, copyAttaches + later 'TargetServer'
 	log.Printf("Copying %s page descendants", pid)
-	content := make([]models.Content, 0)
+	cntList := make([]models.Content, 0)
 
 	//root := s.GetPage(url, tok, pid)
 	childs := s.GetChildren(url, tok, pid).Results
@@ -381,10 +390,10 @@ func (s PageService) CopyPageDescs(url string, tok string, pid string, tgt strin
 		s.CopyPageDescs(url, tok, child.Id, rootCp.Id, ttl, copyLabs, copyCo, copyAtt)
 		cpPage := s.CopyPage(url, tok, child.Id, rootCp.Id, copyLabs, copyCo, copyAtt)
 
-		content = append(content, cpPage)
+		cntList = append(cntList, cpPage)
 	}
 
-	return content
+	return cntList
 }
 
 func (s PageService) UpdatePage(url string, tok string, pid string, find string, repl string) models.Content {
@@ -441,7 +450,7 @@ func (s PageService) GetPageAttaches(url string, tok string, pid string) models.
 	}
 
 	expand := "expand=body.storage,history,version"
-	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/child/attachment?%s", url, pid, expand)
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/child/attachment?limit=100&%s", url, pid, expand) // limit=100
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
@@ -518,24 +527,29 @@ func (s PageService) DownloadAttach(url string, tok string, atId string) string 
 	}
 	defer resp.Body.Close()
 
-	bts, err := ioutil.ReadAll(resp.Body)
-	err = os.WriteFile(fName, bts, fs.ModeAppend)
-
+	bts, rErr := ioutil.ReadAll(resp.Body)
+	if rErr != nil {
+		log.Panicln(rErr)
+	}
+	err = os.WriteFile(fName, bts, fs.ModePerm) // mode 0777
+	if err != nil {
+		log.Panicln(err)
+	}
 	filePath := path.Join(fileDir, fName) // file path
 	fmt.Println("File path is " + filePath)
 
 	return filePath
 }
 
-func (s PageService) CopyAttach(url string, tok string, pid string, atId string) string {
+func (s PageService) CopyAttach(url string, tok string, tpid string, atId string) string {
 
-	log.Println("Adding attach: " + atId + " to page: " + pid)
+	log.Println("Adding attach: " + atId + " to page: " + tpid)
 
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
 
-	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/child/attachment", url, pid)
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/child/attachment", url, tpid)
 
 	//req, err := http.NewRequest("POST", reqUrl, bytes.NewReader(mrsCtn))
 	// =========
@@ -546,7 +560,7 @@ func (s PageService) CopyAttach(url string, tok string, pid string, atId string)
 	fileDir, _ := os.Getwd()
 	fName := attach.Title
 	filePath := path.Join(fileDir, fName) // equals atFilePath
-	fmt.Println("File path is " + filePath)
+	fmt.Println("File path of attach is: " + filePath)
 
 	atFilePath := s.DownloadAttach(url, tok, atId) // attach.Id = nil
 

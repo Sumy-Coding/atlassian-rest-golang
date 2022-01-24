@@ -3,6 +3,7 @@ package main
 import (
 	"confluence-rest-golang/serv"
 	"fmt"
+	"log"
 	"os"
 	"time"
 )
@@ -66,15 +67,15 @@ func main() {
 	//fmt.Println(pageServ.UpdatePage(locUrl, lToken, "2719745", "lorem", "lorem lorem lorem"))
 
 	// == COPY page
-	pageServ.CopyPage(locUrl, lToken, "65603", "2326554", true, true, false)
+	//pageServ.CopyPage(locUrl, lToken, "65603", "2326554", true, true, false)
 
 	// == COPY Hierarchy
-	//log.Println(pageServ.CopyPageDescs(locUrl, lToken, "65603", "2326554", "", false, false, false))
+	log.Println(pageServ.CopyPageDescs(locUrl, lToken, "2719753", "2719764", "", true, true, false))
 
 	// ==== ADD attach
-	//for _, att := range pageServ.GetPageAttaches(locUrl, "1474565").Results {
+	//for _, att := range pageServ.GetPageAttaches(locUrl, lToken, "2719753").Results {
 	//	fmt.Println(att.Id)
-	//	pageServ.AddFileAsAttach(locUrl, "1474561", att.Id)
+	//	pageServ.CopyAttach(locUrl, lToken, "2981909", att.Id)
 	//}
 
 	// ==== Get attaches
