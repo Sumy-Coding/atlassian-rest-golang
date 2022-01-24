@@ -10,8 +10,8 @@ import (
 func main() {
 	now := time.Now()
 	locUrl := "http://localhost:7150"
-	//pageServ := serv.PageService{}
-	labServ := serv.LabelService{}
+	pageServ := serv.PageService{}
+	//labServ := serv.LabelService{}
 	ranServ := serv.RandService{}
 	tokService := serv.TokenService{}
 
@@ -24,7 +24,10 @@ func main() {
 	ranServ.RandomString(10)
 
 	// == Get Page
-	//fmt.Println(pageServ.GetPage(locUrl, lToken, "1474565"))
+	//fmt.Println(pageServ.GetPage(locUrl, lToken, "1769480"))
+
+	// == Contains
+	//fmt.Println(pageServ.PageContains(locUrl, lToken, "1769480", "dolo"))
 
 	// === Children
 	//child := pageServ.GetSpacePages(locUrl, lToken, "DEV")
@@ -47,7 +50,7 @@ func main() {
 	//fmt.Println(pageServ.UpdatePage(locUrl, lToken, "2719745", "lorem", "lorem lorem lorem"))
 
 	// == COPY page
-	//pageServ.CopyPage(locUrl, lToken, "2719747", "2719745")
+	fmt.Println(pageServ.CopyPage(locUrl, lToken, "1769480", "1769510"))
 	//log.Println(pageServ.CopyPageDescs(locUrl, lToken, "2719753", "2719764", "", false, false, false))
 
 	// ==== ADD attach
@@ -69,8 +72,8 @@ func main() {
 	//fmt.Println(labServ.GetPageLabels(locUrl, lToken, "2719745"))
 
 	// === COPY labels
-	labels := []string{"aaa", "bbb"}
-	labServ.AddLabels(locUrl, lToken, "2719762", labels)
+	//labels := []string{"aaa", "bbb"}
+	//labServ.AddLabels(locUrl, lToken, "2719762", labels)
 
 	// == END
 	fmt.Printf("Script took %d secs", time.Now().Sub(now).Seconds())
