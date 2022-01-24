@@ -22,6 +22,8 @@ func main() {
 	//ncPass, b := os.LookupEnv("NC_PASS")
 	locUser := os.Getenv("CONF_LOC_U")
 	locPass, _ := os.LookupEnv("CONF_LOC_P")
+	//bhUser := os.Getenv("BHT_USER")
+	//bhPass, _ := os.LookupEnv("BHT_TOKEN")
 	lToken := tokService.GetToken(locUser, locPass)
 
 	ranServ.RandomString(10)
