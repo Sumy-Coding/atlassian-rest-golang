@@ -1,11 +1,11 @@
 package models
 
 type CreatePage struct {
-	Type      string     `json:"type"`
-	Title     string     `json:"title"`
-	Ancestors []Ancestor `json:"ancestors"`
-	Space     Space      `json:"space"`
-	Body      Body       `json:"body"`
+	Type            string          `json:"type"`
+	Title           string          `json:"title"`
+	Ancestors       []Ancestor      `json:"ancestors"`
+	CreatePageSpace CreatePageSpace `json:"space"`
+	Body            Body            `json:"body"`
 }
 
 type VersionE struct {
@@ -21,11 +21,16 @@ type EditPage struct {
 	Version VersionE `json:"version"`
 }
 
+type Metadata struct {
+	Labels LabelArray `json:"labels"`
+}
+
 type Space struct {
-	Id   int64  `json:"id"`
-	Key  string `json:"key"`
-	Name string `json:"name"`
-	Type string `json:"type"`
+	Id       int64    `json:"id"`
+	Key      string   `json:"key"`
+	Name     string   `json:"name"`
+	Type     string   `json:"type"`
+	Metadata Metadata `json:"metadata"`
 }
 
 type Icon struct {
