@@ -66,7 +66,9 @@ func main() {
 	//fmt.Println(pageServ.UpdatePage(locUrl, lToken, "2719745", "lorem", "lorem lorem lorem"))
 
 	// == COPY page
-	pageServ.CopyPage(locUrl, lToken, "65603", "2326554", true, false, false)
+	pageServ.CopyPage(locUrl, lToken, "65603", "2326554", true, true, false)
+
+	// == COPY Hierarchy
 	//log.Println(pageServ.CopyPageDescs(locUrl, lToken, "65603", "2326554", "", false, false, false))
 
 	// ==== ADD attach
@@ -90,6 +92,9 @@ func main() {
 	// === COPY labels
 	//labels := []string{"aaa", "bbb"}
 	//labServ.AddLabels(locUrl, lToken, "2555907", labels)
+
+	// === Comments
+	//pageServ.AddComment(locUrl, lToken, "2555915", "2555911")
 
 	// == END
 	fmt.Printf("Operations took '%f' secs", time.Now().Sub(start).Seconds())

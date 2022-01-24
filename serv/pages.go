@@ -343,6 +343,10 @@ func (s PageService) CopyPage(url string, tok string, pid string, tid string,
 		labServ.AddLabels(url, tok, content.Id, lbls)
 	}
 
+	if copyAtt {
+		s.GetAttach()
+	}
+
 	return content
 }
 
@@ -610,3 +614,57 @@ func (s PageService) GetComment(url string, tok string, cid string) models.Conte
 
 	return content
 }
+
+func (p PageService) AddComment(url string, tok string, cid string, pid string) models.Content {
+	log.Printf("Copying %s comment to %s page", cid, pid)
+	client := &http.Client{
+		CheckRedirect: redirectPolicyFunc,
+	}
+
+	cmm := p.GetComment(url, tok, cid)
+	page := p.GetPage(url, tok, pid)
+
+	reqUrl := fmt.Sprintf("%s/rest/api/content", url)
+	cntb := models.CreateComment{
+		//Id:    "",
+		Type:  "comment",
+		Title: cmm.Title,
+		CreatePageSpace: models.CreatePageSpace{
+			Key: cmm.Space.Key,
+		}, Body: models.Body{
+			Storage: models.Storage{
+				Representation: "storage", Value: cmm.Body.Storage.Value},
+		},
+		Container: page,
+	}
+	mrsCtn, err2 := json.Marshal(cntb)
+	if err2 != nil {
+		log.Panicln(err2)
+	}
+	req, err := http.NewRequest("POST", reqUrl, bytes.NewReader(mrsCtn))
+	//req.SetBasicAuth("admin", "admin")
+	//resp, err := http.Get(reqUrl)
+	req.Header.Add("Authorization", "Basic "+tok)
+	req.Header.Add("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Panicln(err)
+	}
+	defer resp.Body.Close()
+
+	var content models.Content
+	bts, err := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(bts, &content)
+	fmt.Println(string(bts))
+
+	return content
+
+}
+
+//func (p PageService) CopyComment(url string, tok string, cid string, pid string) models.Content {
+//	log.Printf("Copying %s comment to %s page", cid, pid)
+//
+//	cmm := p.GetComment(url, tok, cid)
+//	page := p.GetPage(url, tok, pid)
+//
+//}

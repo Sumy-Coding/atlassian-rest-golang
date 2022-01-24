@@ -94,6 +94,11 @@ type LabelArray struct {
 	Links   GenericLinks `json:"_links"`
 }
 
+type Extensions struct {
+	Location   string `json:"location"`
+	Resolution string `json:"resolution"`
+}
+
 type Content struct {
 	Id         string         `json:"id"`
 	Type       string         `json:"type"`
@@ -106,4 +111,5 @@ type Content struct {
 	Links      GenericLinks   `json:"_links"`
 	Ancestors  []Ancestor     `json:"ancestors"`
 	Expandable Expandable     `json:"_expandable"`
+	Extensions Extensions     `json:"extensions"`
 }
