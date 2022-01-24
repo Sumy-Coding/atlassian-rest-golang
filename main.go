@@ -3,7 +3,6 @@ package main
 import (
 	"confluence-rest-golang/serv"
 	"fmt"
-	"log"
 	"os"
 	"time"
 )
@@ -67,8 +66,8 @@ func main() {
 	//fmt.Println(pageServ.UpdatePage(locUrl, lToken, "2719745", "lorem", "lorem lorem lorem"))
 
 	// == COPY page
-	//pageServ.CopyPage(locUrl, lToken, "2719747", "2719745")
-	log.Println(pageServ.CopyPageDescs(locUrl, lToken, "65603", "2326554", "", false, false, false))
+	pageServ.CopyPage(locUrl, lToken, "65603", "2326554", true, false, false)
+	//log.Println(pageServ.CopyPageDescs(locUrl, lToken, "65603", "2326554", "", false, false, false))
 
 	// ==== ADD attach
 	//for _, att := range pageServ.GetPageAttaches(locUrl, "1474565").Results {
@@ -90,7 +89,7 @@ func main() {
 
 	// === COPY labels
 	//labels := []string{"aaa", "bbb"}
-	//labServ.AddLabels(locUrl, lToken, "2719762", labels)
+	//labServ.AddLabels(locUrl, lToken, "2555907", labels)
 
 	// == END
 	fmt.Printf("Operations took '%f' secs", time.Now().Sub(start).Seconds())

@@ -20,6 +20,10 @@ import (
 type PageService struct {
 }
 
+var (
+	labServ = LabelService{}
+)
+
 //func basicAuth(username, password string) string {
 //	auth := username + ":" + password
 //	return base64.StdEncoding.EncodeToString([]byte(auth))
@@ -294,11 +298,10 @@ func (s PageService) CreateContent(url string, tok string, ctype string, key str
 	fmt.Println(string(bts))
 
 	return content
-
 }
 
 func (s PageService) CopyPage(url string, tok string, pid string, tid string,
-	copyLabs bool, copyCo bool, copyAtt bool) models.Content {
+	copyLabs bool, copyAtt bool, copyCo bool) models.Content {
 	// todo - copyLabels, copyComments, copyAttaches
 
 	log.Println("Copying page " + pid)
@@ -331,14 +334,23 @@ func (s PageService) CopyPage(url string, tok string, pid string, tid string,
 	var content models.Content
 	content = s.CreateContent(url, tok, "page", parPage.Space.Key, tid, ttl, orPage.Body.Storage.Value)
 
-	return content
+	if copyLabs {
+		lArr := labServ.GetPageLabels(url, tok, pid)
+		lbls := make([]string, 0)
+		for _, l := range lArr.Results {
+			lbls = append(lbls, l.Name)
+		}
+		labServ.AddLabels(url, tok, content.Id, lbls)
+	}
 
+	return content
 }
 
 func (s PageService) CopyPageDescs(url string, tok string, pid string, tgt string, nTitle string,
 	copyLabs bool, copyCo bool, copyAtt bool) []models.Content {
-	// todo - copyLabels, copyComments, copyAttaches + later 'TargetServer'
 
+	// todo - copyLabels, copyComments, copyAttaches + later 'TargetServer'
+	log.Printf("Copying %s page descendants", pid)
 	content := make([]models.Content, 0)
 
 	//root := s.GetPage(url, tok, pid)
@@ -361,41 +373,7 @@ func (s PageService) CopyPageDescs(url string, tok string, pid string, tgt strin
 		}
 		log.Println("Copying child page " + child.Id + " under " + rootCp.Id)
 
-		// todo - recursion NOT working for GO as in Groovy
-		s.CopyPageDescs(url, tok, child.Id, rootCp.Id, ttl, copyLabs, copyCo, copyAtt)
-		cpPage := s.CopyPage(url, tok, child.Id, rootCp.Id, copyLabs, copyCo, copyAtt)
-
-		content = append(content, cpPage)
-	}
-
-	return content
-
-}
-
-func (s PageService) CopyPageDescs2(url string, tok string, pid string, tgt string, nTitle string,
-	copyLabs bool, copyCo bool, copyAtt bool) []models.Content {
-
-	content := make([]models.Content, 0)
-
-	childs := s.GetChildren(url, tok, pid).Results
-	rootCp := s.CopyPage(url, tok, pid, tgt, copyLabs, copyCo, copyAtt)
-	log.Printf("ROOT page %s copied as %s", pid, rootCp.Id)
-
-	for _, child := range childs {
-		var ttl string
-		if nTitle == "" {
-			// todo - check current space or different
-			if child.Space.Key == rootCp.Space.Key {
-				ttl = "Copy of " + child.Title
-			} else {
-				ttl = child.Title
-			}
-		} else {
-			ttl = nTitle + child.Title
-		}
-		log.Println("Copying child page " + child.Id + " under " + rootCp.Id)
-
-		// todo - recursion NOT working for GO as in Groovy
+		// recursion NOT working for GO as in Groovy - use Async ?
 		s.CopyPageDescs(url, tok, child.Id, rootCp.Id, ttl, copyLabs, copyCo, copyAtt)
 		cpPage := s.CopyPage(url, tok, child.Id, rootCp.Id, copyLabs, copyCo, copyAtt)
 
@@ -407,6 +385,7 @@ func (s PageService) CopyPageDescs2(url string, tok string, pid string, tgt stri
 
 func (s PageService) UpdatePage(url string, tok string, pid string, find string, repl string) models.Content {
 
+	log.Printf("Updating %s page", pid)
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
@@ -452,6 +431,7 @@ func (s PageService) UpdatePage(url string, tok string, pid string, find string,
 
 func (s PageService) GetPageAttaches(url string, tok string, pid string) models.ContentArray {
 
+	log.Printf("Getting %s page attachments", pid)
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
@@ -478,6 +458,7 @@ func (s PageService) GetPageAttaches(url string, tok string, pid string) models.
 
 func (s PageService) GetAttach(url string, tok string, aid string) models.Content {
 
+	log.Printf("Getting %s attachment", aid)
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
@@ -503,6 +484,8 @@ func (s PageService) GetAttach(url string, tok string, aid string) models.Conten
 }
 
 func (s PageService) DownloadAttach(url string, tok string, atId string) string {
+
+	log.Printf("Getting %s attachment", atId)
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
@@ -540,9 +523,9 @@ func (s PageService) DownloadAttach(url string, tok string, atId string) string 
 	return filePath
 }
 
-func (s PageService) AddFileAsAttach(url string, tok string, pid string, atId string) string {
+func (s PageService) CopyAttach(url string, tok string, pid string, atId string) string {
 
-	log.Println("Adding attach to page " + pid)
+	log.Println("Adding attach: " + atId + " to page: " + pid)
 
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
@@ -566,7 +549,7 @@ func (s PageService) AddFileAsAttach(url string, tok string, pid string, atId st
 	//os.WriteFile(fName)
 	//ioutil.WriteFile(fName)
 	// save attach
-	fl, _ := os.Open(atFilePath) // atFilePath
+	fl, _ := os.Open(atFilePath) // atFilePath / fileDir
 	defer fl.Close()
 
 	btb := &bytes.Buffer{} // byte buffer
@@ -587,10 +570,6 @@ func (s PageService) AddFileAsAttach(url string, tok string, pid string, atId st
 	r.Header.Add("X-Atlassian-Token", "nocheck")
 	//client := &http.Client{}
 	resp, err := client.Do(r)
-	//if err != nil {
-	//	log.Panicln(err)
-	//}
-	/// ====
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -608,6 +587,7 @@ func (s PageService) AddFileAsAttach(url string, tok string, pid string, atId st
 
 func (s PageService) GetComment(url string, tok string, cid string) models.Content {
 
+	log.Printf("Getting %s page coment", cid)
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
