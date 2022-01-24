@@ -3,13 +3,15 @@ package main
 import (
 	"confluence-rest-golang/serv"
 	"fmt"
+	"log"
 	"os"
 	"time"
 )
 
 func main() {
-	now := time.Now()
-	locUrl := "http://localhost:7151"
+	start := time.Now()
+
+	locUrl := "http://localhost:7150"
 	pageServ := serv.PageService{}
 	//labServ := serv.LabelService{}
 	//spaceServ := serv.SpaceService{}
@@ -18,7 +20,7 @@ func main() {
 
 	//ncName, _ := os.LookupEnv("NC_ID")
 	//ncPass, b := os.LookupEnv("NC_PASS")
-	locUser, _ := os.LookupEnv("CONF_LOC_U")
+	locUser := os.Getenv("CONF_LOC_U")
 	locPass, _ := os.LookupEnv("CONF_LOC_P")
 	lToken := tokService.GetToken(locUser, locPass)
 
@@ -39,10 +41,10 @@ func main() {
 	// === Create Pages
 	//pageServ.CreateContent(locUrl, lToken, "DEV", "2719745", "t 333", ranServ.RandomString(10))
 	// == several
-	for i := 1; i < 15; i++ {
-		bod := ranServ.RandomString(15)
-		pageServ.CreateContent(locUrl, lToken, "page", "DEV3", "66221", fmt.Sprintf("DEV3 - %d", i), bod)
-	}
+	//for i := 1; i < 15; i++ {
+	//	bod := ranServ.RandomString(15)
+	//	pageServ.CreateContent(locUrl, lToken, "page", "DEV3", "66221", fmt.Sprintf("DEV3 - %d", i), bod)
+	//}
 
 	// COMPLEX HIERARCHY
 	//var count int
@@ -66,7 +68,7 @@ func main() {
 
 	// == COPY page
 	//pageServ.CopyPage(locUrl, lToken, "2719747", "2719745")
-	//log.Println(pageServ.CopyPageDescs(locUrl, lToken, "2719753", "2719764", "", false, false, false))
+	log.Println(pageServ.CopyPageDescs(locUrl, lToken, "65603", "2326554", "", false, false, false))
 
 	// ==== ADD attach
 	//for _, att := range pageServ.GetPageAttaches(locUrl, "1474565").Results {
@@ -91,5 +93,5 @@ func main() {
 	//labServ.AddLabels(locUrl, lToken, "2719762", labels)
 
 	// == END
-	fmt.Printf("Script took %d secs", time.Now().Sub(now).Seconds())
+	fmt.Printf("Script took %f secs", time.Now().Sub(start).Seconds())
 }

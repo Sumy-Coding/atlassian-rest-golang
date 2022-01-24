@@ -53,6 +53,7 @@ func (s PageService) GetPage(url string, tok string, id string) models.Content {
 	log.Println("GET REQ URL is " + reqUrl)
 
 	req, err := http.NewRequest("GET", reqUrl, nil)
+	//defer req.Body.Close()	// close body
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)
@@ -73,11 +74,18 @@ func (s PageService) GetChildren(url string, tok string, id string) models.Conte
 	expand := "expand=space,body.storage,history,version"
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/child/page?%s", url, id, expand)
 	req, err := http.NewRequest("GET", reqUrl, nil)
+	//defer func(Body io.ReadCloser) {
+	//	err := Body.Close()
+	//	if err != nil {
+	//		log.Panicln(err)
+	//	}
+	//}(req.Body)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)
 	client := myClient(reqUrl, tok)
 	resp, err := client.Do(req)
+	defer resp.Body.Close() // todo -close body
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -137,7 +145,7 @@ func (s PageService) GetSpacePages(url string, tok string, key string) models.Co
 
 }
 
-func (p PageService) getSpacePagesByLabel(url string, tok string, key string, lb string) models.ContentArray { // todo
+func (p PageService) GetSpacePagesByLabel(url string, tok string, key string, lb string) models.ContentArray { // todo
 	//?cql=space+%3D+"DEV"+and+label+%3D+"aa"
 	reqUrl := fmt.Sprintf("%s/rest/api/search?cql=space=\"%s\"+and+label+%3D+\"%s\"", url, key, lb)
 	req, err := http.NewRequest("GET", reqUrl, nil)
@@ -274,13 +282,15 @@ func (s PageService) CreateContent(url string, tok string, ctype string, key str
 
 }
 
-func (s PageService) CopyPage(url string, tok string, pid string, parent string) models.Content {
+func (s PageService) CopyPage(url string, tok string, pid string, tid string,
+	copyLabs bool, copyCo bool, copyAtt bool) models.Content {
 	// todo - copyLabels, copyComments, copyAttaches
 
 	log.Println("Copying page " + pid)
 
 	orPage := s.GetPage(url, tok, pid)
-	parPage := s.GetPage(url, tok, parent)
+	//time.Sleep(time.Duration(sservice.ResponseTime) * time.Millisecond) // sleep till getting target parent
+	parPage := s.GetPage(url, tok, tid)
 
 	/* reqUrl := fmt.Sprintf("%s/rest/api/content", url)
 	ancts := []models.Ancestor{{Id: parent}} // parent
@@ -304,7 +314,7 @@ func (s PageService) CopyPage(url string, tok string, pid string, parent string)
 	}
 
 	var content models.Content
-	content = s.CreateContent(url, tok, "page", orPage.Space.Key, parent, ttl, orPage.Body.Storage.Value)
+	content = s.CreateContent(url, tok, "page", parPage.Space.Key, tid, ttl, orPage.Body.Storage.Value)
 
 	return content
 
@@ -312,13 +322,14 @@ func (s PageService) CopyPage(url string, tok string, pid string, parent string)
 
 func (s PageService) CopyPageDescs(url string, tok string, pid string, tgt string, nTitle string,
 	copyLabs bool, copyCo bool, copyAtt bool) []models.Content {
-	// todo - copyLabels, copyComments, copyAttaches
+	// todo - copyLabels, copyComments, copyAttaches + later 'TargetServer'
 
 	content := make([]models.Content, 0)
 
 	//root := s.GetPage(url, tok, pid)
 	childs := s.GetChildren(url, tok, pid).Results
-	rootCp := s.CopyPage(url, tok, pid, tgt)
+	rootCp := s.CopyPage(url, tok, pid, tgt, copyLabs, copyCo, copyAtt)
+
 	log.Printf("ROOT page %s copied as %s", pid, rootCp.Id)
 
 	for _, child := range childs {
@@ -335,14 +346,48 @@ func (s PageService) CopyPageDescs(url string, tok string, pid string, tgt strin
 		}
 		log.Println("Copying child page " + child.Id + " under " + rootCp.Id)
 
+		// todo - recursion NOT working for GO as in Groovy
 		s.CopyPageDescs(url, tok, child.Id, rootCp.Id, ttl, copyLabs, copyCo, copyAtt)
-		cpPage := s.CopyPage(url, tok, child.Id, rootCp.Id)
+		cpPage := s.CopyPage(url, tok, child.Id, rootCp.Id, copyLabs, copyCo, copyAtt)
 
 		content = append(content, cpPage)
 	}
 
 	return content
 
+}
+
+func (s PageService) CopyPageDescs2(url string, tok string, pid string, tgt string, nTitle string,
+	copyLabs bool, copyCo bool, copyAtt bool) []models.Content {
+
+	content := make([]models.Content, 0)
+
+	childs := s.GetChildren(url, tok, pid).Results
+	rootCp := s.CopyPage(url, tok, pid, tgt, copyLabs, copyCo, copyAtt)
+	log.Printf("ROOT page %s copied as %s", pid, rootCp.Id)
+
+	for _, child := range childs {
+		var ttl string
+		if nTitle == "" {
+			// todo - check current space or different
+			if child.Space.Key == rootCp.Space.Key {
+				ttl = "Copy of " + child.Title
+			} else {
+				ttl = child.Title
+			}
+		} else {
+			ttl = nTitle + child.Title
+		}
+		log.Println("Copying child page " + child.Id + " under " + rootCp.Id)
+
+		// todo - recursion NOT working for GO as in Groovy
+		s.CopyPageDescs(url, tok, child.Id, rootCp.Id, ttl, copyLabs, copyCo, copyAtt)
+		cpPage := s.CopyPage(url, tok, child.Id, rootCp.Id, copyLabs, copyCo, copyAtt)
+
+		content = append(content, cpPage)
+	}
+
+	return content
 }
 
 func (s PageService) UpdatePage(url string, tok string, pid string, find string, repl string) models.Content {
