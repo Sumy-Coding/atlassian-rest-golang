@@ -3,7 +3,6 @@ package main
 import (
 	"confluence-rest-golang/serv"
 	"fmt"
-	"log"
 	"os"
 	"time"
 )
@@ -11,7 +10,8 @@ import (
 func main() {
 	start := time.Now()
 
-	locUrl := "http://localhost:7150"
+	//locUrl := "http://localhost:7150"
+	bhtUrl := os.Getenv("BHT_URL")
 	pageServ := serv.PageService{}
 	//labServ := serv.LabelService{}
 	//spaceServ := serv.SpaceService{}
@@ -20,20 +20,23 @@ func main() {
 
 	//ncName, _ := os.LookupEnv("NC_ID")
 	//ncPass, b := os.LookupEnv("NC_PASS")
-	locUser := os.Getenv("CONF_LOC_U")
-	locPass, _ := os.LookupEnv("CONF_LOC_P")
+	//locUser := os.Getenv("CONF_LOC_U")
+	//locPass, _ := os.LookupEnv("CONF_LOC_P")
+	bhUser := os.Getenv("BHT_USER")
+	bhPass, _ := os.LookupEnv("BHT_TOKEN")
 	//bhUser := os.Getenv("BHT_USER")
 	//bhPass, _ := os.LookupEnv("BHT_TOKEN")
-	lToken := tokService.GetToken(locUser, locPass)
+	//lToken := tokService.GetToken(locUser, locPass)
+	bhToken := tokService.GetToken(bhUser, bhPass)
 
 	ranServ.RandomString(10)
 
 	// == Get Page
-	//fmt.Println(pageServ.GetPage(locUrl, lToken, "65611"))
+	fmt.Println(pageServ.GetPage(bhtUrl, bhToken, "65557"))
 
 	// === Children
-	//child := pageServ.GetSpacePages(locUrl, lToken, "DEV")
-	//fmt.Println(child)
+	child := pageServ.GetSpacePages(bhtUrl, bhToken, "DEMO")
+	fmt.Println(child)
 
 	// === GET descendants
 	//for _, page := range pageServ.GetDescendants(locUrl, lToken, "65603", 200).Results {
@@ -72,7 +75,7 @@ func main() {
 	//pageServ.CopyPage(locUrl, lToken, "65603", "2326554", true, true, false)
 
 	// == COPY Hierarchy
-	log.Println(pageServ.CopyPageDescs(locUrl, lToken, "2719753", "2719764", "", true, true, false))
+	//log.Println(pageServ.CopyPageDescs(bhtUrl, bhToken, "", "", "", true, true, false))
 
 	// ==== ADD attach
 	//for _, att := range pageServ.GetPageAttaches(locUrl, lToken, "2719753").Results {
