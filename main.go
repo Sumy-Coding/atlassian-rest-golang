@@ -32,7 +32,7 @@ func main() {
 	ranServ.RandomString(10)
 
 	// == Get Page
-	//fmt.Println(pageServ.GetPage(bhtUrl, bhToken, "65557"))
+	fmt.Println(pageServ.GetPage(bhtUrl, bhToken, "468287489"))
 
 	// === Children
 	//child := pageServ.GetSpacePages(bhtUrl, bhToken, "DEMO")
@@ -46,10 +46,10 @@ func main() {
 	// === Create Pages
 	//pageServ.CreateContent(bhtUrl, bhToken, "page", "TEST", "467369985", "HHHHH", ranServ.RandomString(15))
 	// == several
-	for i := 1; i < 15; i++ {
-		bod := ranServ.RandomString(15)
-		pageServ.CreateContent(bhtUrl, bhToken, "page", "TEST", "467369985", fmt.Sprintf("RST - %d", i), bod)
-	}
+	//for i := 1; i < 15; i++ {
+	//	bod := ranServ.RandomString(15)
+	//	pageServ.CreateContent(bhtUrl, bhToken, "page", "TEST", "467369985", fmt.Sprintf("RST - %d", i), bod)
+	//}
 
 	// COMPLEX HIERARCHY
 	//var count int

@@ -38,39 +38,22 @@ func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
 	return nil
 }
 
-func myClient(url string, token string) *http.Client {
-	client := &http.Client{
-		CheckRedirect: redirectPolicyFunc,
-	}
-	return client
-}
+func (ps PageService) GetPage(url string, tok string, id string) models.Content {
 
-func (s PageService) GetPage(url string, tok string, id string) models.Content {
-
-	client := &http.Client{
-		CheckRedirect: redirectPolicyFunc,
-	}
-
+	client := myClient(url, tok)
 	expand := "expand=space,body.storage,history,version"
 
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s?%s", url, id, expand)
 	log.Println("GET REQ URL is " + reqUrl)
 
 	req, err := http.NewRequest("GET", reqUrl, nil)
-	//defer req.Body.Close()	// close body
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Panicln(err)
+		log.Println(err)
 	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			log.Panicln(err)
-		}
-	}(resp.Body)
 
 	var content models.Content
 	bts, err := ioutil.ReadAll(resp.Body)
@@ -682,3 +665,10 @@ func (p PageService) AddComment(url string, tok string, cid string, pid string) 
 //	page := p.GetPage(url, tok, pid)
 //
 //}
+
+func myClient(url string, token string) *http.Client {
+	client := &http.Client{
+		CheckRedirect: redirectPolicyFunc,
+	}
+	return client
+}
