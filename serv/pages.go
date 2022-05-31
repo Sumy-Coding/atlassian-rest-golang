@@ -15,6 +15,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 type PageService struct {
@@ -22,6 +23,7 @@ type PageService struct {
 
 var (
 	labServ = LabelService{}
+	wg      sync.WaitGroup
 )
 
 //func basicAuth(username, password string) string {
@@ -242,11 +244,10 @@ func (s PageService) ScrollTemplates(url string, tok string, key string) []strin
 
 //createPage(CONF_URL, TOKEN, space, parentId, title, body)
 func (s PageService) CreateContent(url string, tok string, ctype string, key string, parent string, title string, bd string) models.Content {
-
+	wg.Add(1)
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
-
 	reqUrl := fmt.Sprintf("%s/rest/api/content", url)
 	ancts := []models.Ancestor{{Id: parent}} // parent
 	cntb := models.CreatePage{
@@ -279,7 +280,7 @@ func (s PageService) CreateContent(url string, tok string, ctype string, key str
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &content)
 	fmt.Println(string(bts))
-
+	defer wg.Done()
 	return content
 }
 

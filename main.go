@@ -4,6 +4,7 @@ import (
 	"confluence-rest-golang/serv"
 	"fmt"
 	"os"
+	"runtime"
 	"time"
 )
 
@@ -12,7 +13,7 @@ func main() {
 
 	locUrl := "http://localhost:7180"
 	//bhtUrl := os.Getenv("BHT_URL")
-	//pageServ := serv.PageService{}
+	pageServ := serv.PageService{}
 	//labServ := serv.LabelService{}
 	spaceServ := serv.SpaceService{}
 	ranServ := serv.RandService{}
@@ -30,7 +31,8 @@ func main() {
 	//bhToken := tokService.GetToken(bhUser, bhPass)
 
 	ranServ.RandomString(10)
-
+	//var wg sync.WaitGroup
+	runtime.GOMAXPROCS(50)
 	// == Get Page
 	//fmt.Println(pageServ.GetPage(bhtUrl, bhToken, "468287489"))
 
@@ -68,8 +70,22 @@ func main() {
 	// === CREATE SPACE
 	//fmt.Println(spaceServ.CreateSpace(locUrl, lToken, "DEV2", "DEV2"))
 
+	// Operations took '124.458869' secs
 	for a := 3; a <= 20; a++ {
-		fmt.Println(spaceServ.CreateSpace(locUrl, lToken, fmt.Sprintf("DEV%d", a), fmt.Sprintf("DEV%d", a)))
+		//wg.Add(1)
+		go func() {
+			key := fmt.Sprintf("DEV%d", a)
+			sp := spaceServ.GetSpace(locUrl, lToken, key)
+			for i := 40; i < 45; i++ {
+				bod := ranServ.RandomString(15)
+				pageServ.CreateContent(locUrl, lToken, "page",
+					sp.Key,
+					sp.Homepage.Id,
+					fmt.Sprintf("RST - %d", i), bod)
+			}
+		}()
+
+		//fmt.Println(spaceServ.CreateSpace(locUrl, lToken, fmt.Sprintf("DEV%d", a), fmt.Sprintf("DEV%d", a)))
 	}
 
 	// == Edit Page
