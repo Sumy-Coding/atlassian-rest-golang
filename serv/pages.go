@@ -39,7 +39,6 @@ func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
 }
 
 func (ps PageService) GetPage(url string, tok string, id string) models.Content {
-
 	client := myClient(url, tok)
 	expand := "expand=space,body.storage,history,version"
 
@@ -79,6 +78,7 @@ func (s PageService) GetChildren(url string, tok string, id string) models.Conte
 	req.Header.Add("Authorization", "Basic "+tok)
 	client := myClient(reqUrl, tok)
 	resp, err := client.Do(req)
+	fmt.Printf("Response code for GETPAGE is %d", resp.StatusCode)
 	defer resp.Body.Close() // todo -close body
 	if err != nil {
 		log.Panicln(err)

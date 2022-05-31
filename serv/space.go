@@ -72,5 +72,4 @@ func (s SpaceService) CreateSpace(url string, tok string, key string, name strin
 	}
 
 	return crSPace
-
 }

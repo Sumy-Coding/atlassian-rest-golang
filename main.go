@@ -10,29 +10,29 @@ import (
 func main() {
 	start := time.Now()
 
-	//locUrl := "http://localhost:7150"
-	bhtUrl := os.Getenv("BHT_URL")
-	pageServ := serv.PageService{}
+	locUrl := "http://localhost:7180"
+	//bhtUrl := os.Getenv("BHT_URL")
+	//pageServ := serv.PageService{}
 	//labServ := serv.LabelService{}
-	//spaceServ := serv.SpaceService{}
+	spaceServ := serv.SpaceService{}
 	ranServ := serv.RandService{}
 	tokService := serv.TokenService{}
 
 	//ncName, _ := os.LookupEnv("NC_ID")
 	//ncPass, b := os.LookupEnv("NC_PASS")
-	//locUser := os.Getenv("CONF_LOC_U")
-	//locPass, _ := os.LookupEnv("CONF_LOC_P")
-	bhUser := os.Getenv("BHT_USER")
-	bhPass, _ := os.LookupEnv("BHT_TOKEN")
+	locUser := os.Getenv("CONF_LOC_U")
+	locPass, _ := os.LookupEnv("CONF_LOC_P")
 	//bhUser := os.Getenv("BHT_USER")
 	//bhPass, _ := os.LookupEnv("BHT_TOKEN")
-	//lToken := tokService.GetToken(locUser, locPass)
-	bhToken := tokService.GetToken(bhUser, bhPass)
+	//bhUser := os.Getenv("BHT_USER")
+	//bhPass, _ := os.LookupEnv("BHT_TOKEN")
+	lToken := tokService.GetToken(locUser, locPass)
+	//bhToken := tokService.GetToken(bhUser, bhPass)
 
 	ranServ.RandomString(10)
 
 	// == Get Page
-	fmt.Println(pageServ.GetPage(bhtUrl, bhToken, "468287489"))
+	//fmt.Println(pageServ.GetPage(bhtUrl, bhToken, "468287489"))
 
 	// === Children
 	//child := pageServ.GetSpacePages(bhtUrl, bhToken, "DEMO")
@@ -67,6 +67,10 @@ func main() {
 
 	// === CREATE SPACE
 	//fmt.Println(spaceServ.CreateSpace(locUrl, lToken, "DEV2", "DEV2"))
+
+	for a := 3; a <= 20; a++ {
+		fmt.Println(spaceServ.CreateSpace(locUrl, lToken, fmt.Sprintf("DEV%d", a), fmt.Sprintf("DEV%d", a)))
+	}
 
 	// == Edit Page
 	//fmt.Println(pageServ.UpdatePage(locUrl, lToken, "2719745", "lorem", "lorem lorem lorem"))
