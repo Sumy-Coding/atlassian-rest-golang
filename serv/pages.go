@@ -23,7 +23,7 @@ type PageService struct {
 
 var (
 	labServ = LabelService{}
-	wg      sync.WaitGroup
+	//wg      sync.WaitGroup
 )
 
 //func basicAuth(username, password string) string {
@@ -117,6 +117,48 @@ func (s PageService) GetDescendants(url string, tok string, id string, lim int) 
 
 }
 
+//createPage(CONF_URL, TOKEN, space, parentId, title, body)
+func (s PageService) CreateContent(wg *sync.WaitGroup, url string, tok string, ctype string, key string, parent string, title string, bd string) models.Content {
+	//wg.Add(1)
+	defer wg.Done()
+	client := &http.Client{
+		CheckRedirect: redirectPolicyFunc,
+	}
+	reqUrl := fmt.Sprintf("%s/rest/api/content", url)
+	ancts := []models.Ancestor{{Id: parent}} // parent
+	cntb := models.CreatePage{
+		Type:  ctype,
+		Title: title,
+		CreatePageSpace: models.CreatePageSpace{
+			Key: key,
+		}, Body: models.Body{
+			Storage: models.Storage{
+				Representation: "storage", Value: bd},
+		},
+		Ancestors: ancts,
+		//req.SetBasicAuth("admin", "admin")
+		//resp, err := http.Get(reqUrl)
+	}
+	mrsCtn, err2 := json.Marshal(cntb)
+	fmt.Println(string(mrsCtn))
+	if err2 != nil {
+		log.Panicln(err2)
+	}
+	req, err := http.NewRequest("POST", reqUrl, bytes.NewReader(mrsCtn))
+	req.Header.Add("Authorization", "Basic "+tok)
+	req.Header.Add("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Panicln(err)
+	}
+	defer resp.Body.Close()
+	var content models.Content
+	bts, err := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(bts, &content)
+	fmt.Println(string(bts))
+	return content
+}
+
 func (s PageService) PageContains(url string, tok string, id string, find string) bool {
 	body := s.GetPage(url, tok, id).Body.Storage.Value
 	return strings.Contains(body, find)
@@ -143,7 +185,6 @@ func (s PageService) GetSpacePages(url string, tok string, key string) models.Co
 	return cnArray
 
 }
-
 func (p PageService) GetSpacePagesByLabel(url string, tok string, key string, lb string) models.ContentArray { // todo
 	//?cql=space+%3D+"DEV"+and+label+%3D+"aa"
 	reqUrl := fmt.Sprintf("%s/rest/api/search?cql=space=\"%s\"+and+label+%3D+\"%s\"", url, key, lb)
@@ -161,6 +202,7 @@ func (p PageService) GetSpacePagesByLabel(url string, tok string, key string, lb
 
 	return cnArray
 }
+
 func (s PageService) GetSpaceBlogs(url string, tok string, key string) models.ContentArray {
 
 	reqUrl := fmt.Sprintf("%s/rest/api/content?type=blogpost&spaceKey=%s&limit=300", url, key) //limit=300
@@ -242,49 +284,7 @@ func (s PageService) ScrollTemplates(url string, tok string, key string) []strin
 
 }
 
-//createPage(CONF_URL, TOKEN, space, parentId, title, body)
-func (s PageService) CreateContent(url string, tok string, ctype string, key string, parent string, title string, bd string) models.Content {
-	wg.Add(1)
-	client := &http.Client{
-		CheckRedirect: redirectPolicyFunc,
-	}
-	reqUrl := fmt.Sprintf("%s/rest/api/content", url)
-	ancts := []models.Ancestor{{Id: parent}} // parent
-	cntb := models.CreatePage{
-		//Id:    "",
-		Type:  ctype,
-		Title: title,
-		CreatePageSpace: models.CreatePageSpace{
-			Key: key,
-		}, Body: models.Body{
-			Storage: models.Storage{
-				Representation: "storage", Value: bd},
-		},
-		Ancestors: ancts,
-	}
-	mrsCtn, err2 := json.Marshal(cntb)
-	if err2 != nil {
-		log.Panicln(err2)
-	}
-	req, err := http.NewRequest("POST", reqUrl, bytes.NewReader(mrsCtn))
-	//req.SetBasicAuth("admin", "admin")
-	//resp, err := http.Get(reqUrl)
-	req.Header.Add("Authorization", "Basic "+tok)
-	req.Header.Add("Content-Type", "application/json")
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Panicln(err)
-	}
-	defer resp.Body.Close()
-	var content models.Content
-	bts, err := ioutil.ReadAll(resp.Body)
-	err = json.Unmarshal(bts, &content)
-	fmt.Println(string(bts))
-	defer wg.Done()
-	return content
-}
-
-func (s PageService) CopyPage(url string, tok string, pid string, tid string,
+func (s PageService) CopyPage(wg *sync.WaitGroup, url string, tok string, pid string, tid string,
 	copyLabs bool, copyAtt bool, copyCo bool) models.Content {
 	// todo - copyLabels, copyComments, copyAttaches
 
@@ -316,7 +316,7 @@ func (s PageService) CopyPage(url string, tok string, pid string, tid string,
 	}
 
 	var createdPage models.Content
-	createdPage = s.CreateContent(url, tok, "page", parPage.Space.Key, tid, ttl, orPage.Body.Storage.Value)
+	createdPage = s.CreateContent(wg, url, tok, "page", parPage.Space.Key, tid, ttl, orPage.Body.Storage.Value)
 
 	// copy labels
 	if copyLabs {
@@ -343,7 +343,7 @@ func (s PageService) CopyPage(url string, tok string, pid string, tid string,
 	return createdPage
 }
 
-func (s PageService) CopyPageDescs(url string, tok string, pid string, tgt string, nTitle string,
+func (s PageService) CopyPageDescs(wg *sync.WaitGroup, url string, tok string, pid string, tgt string, nTitle string,
 	copyLabs bool, copyCo bool, copyAtt bool) []models.Content {
 
 	// todo - copyLabels, copyComments, copyAttaches + later 'TargetServer'
@@ -352,7 +352,7 @@ func (s PageService) CopyPageDescs(url string, tok string, pid string, tgt strin
 
 	//root := s.GetPage(url, tok, pid)
 	childs := s.GetChildren(url, tok, pid).Results
-	rootCp := s.CopyPage(url, tok, pid, tgt, copyLabs, copyCo, copyAtt)
+	rootCp := s.CopyPage(wg, url, tok, pid, tgt, copyLabs, copyCo, copyAtt)
 
 	log.Printf("ROOT page %s copied as %s", pid, rootCp.Id)
 
@@ -371,8 +371,8 @@ func (s PageService) CopyPageDescs(url string, tok string, pid string, tgt strin
 		log.Println("Copying child page " + child.Id + " under " + rootCp.Id)
 
 		// recursion NOT working for GO as in Groovy - use Async ?
-		s.CopyPageDescs(url, tok, child.Id, rootCp.Id, ttl, copyLabs, copyCo, copyAtt)
-		cpPage := s.CopyPage(url, tok, child.Id, rootCp.Id, copyLabs, copyCo, copyAtt)
+		s.CopyPageDescs(wg, url, tok, child.Id, rootCp.Id, ttl, copyLabs, copyCo, copyAtt)
+		cpPage := s.CopyPage(wg, url, tok, child.Id, rootCp.Id, copyLabs, copyCo, copyAtt)
 
 		cntList = append(cntList, cpPage)
 	}

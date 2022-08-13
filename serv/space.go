@@ -14,11 +14,11 @@ type SpaceService struct {
 }
 
 func (s SpaceService) GetSpace(url string, tok string, key string) models.Space {
-	client := &http.Client{
+	var client *http.Client = &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
 
-	reqUrl := fmt.Sprintf("%s/rest/api/space/%s?expand=homepage,metadata.labels", url, key)
+	var reqUrl string = fmt.Sprintf("%s/rest/api/space/%s?expand=homepage,metadata.labels", url, key)
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)

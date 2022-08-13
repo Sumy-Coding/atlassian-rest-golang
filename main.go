@@ -5,17 +5,18 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"sync"
 	"time"
 )
 
 func main() {
 	start := time.Now()
 
-	locUrl := "http://localhost:7180"
+	locUrl := "http://localhost:7190"
 	//bhtUrl := os.Getenv("BHT_URL")
 	pageServ := serv.PageService{}
 	//labServ := serv.LabelService{}
-	spaceServ := serv.SpaceService{}
+	//spaceServ := serv.SpaceService{}
 	ranServ := serv.RandService{}
 	tokService := serv.TokenService{}
 
@@ -46,12 +47,21 @@ func main() {
 	//}
 
 	// === Create Pages
-	//pageServ.CreateContent(bhtUrl, bhToken, "page", "TEST", "467369985", "HHHHH", ranServ.RandomString(15))
+	//pageServ.CreateContent(locUrl, lToken, "page", "CSHR1", "1572868", "HHHHH", ranServ.RandomString(15))
 	// == several
-	//for i := 1; i < 15; i++ {
-	//	bod := ranServ.RandomString(15)
-	//	pageServ.CreateContent(bhtUrl, bhToken, "page", "TEST", "467369985", fmt.Sprintf("RST - %d", i), bod)
-	//}
+	var waitG sync.WaitGroup
+	for i := 1; i <= 100; i++ {
+		waitG.Add(1)
+		//bod := ranServ.RandomString(2)
+		bod := "lorem asd asd das  d ds"
+		go func(count int) {
+			pageServ.CreateContent(&waitG, locUrl, lToken, "page", "GOGO",
+				"2785364",
+				fmt.Sprintf("GOGO 100-1 - %d", count),
+				bod)
+		}(i)
+	}
+	waitG.Wait()
 
 	// COMPLEX HIERARCHY
 	//var count int
@@ -70,23 +80,27 @@ func main() {
 	// === CREATE SPACE
 	//fmt.Println(spaceServ.CreateSpace(locUrl, lToken, "DEV2", "DEV2"))
 
-	// Operations took '124.458869' secs
-	for a := 3; a <= 20; a++ {
-		//wg.Add(1)
-		go func() {
-			key := fmt.Sprintf("DEV%d", a)
-			sp := spaceServ.GetSpace(locUrl, lToken, key)
-			for i := 40; i < 45; i++ {
-				bod := ranServ.RandomString(15)
-				pageServ.CreateContent(locUrl, lToken, "page",
-					sp.Key,
-					sp.Homepage.Id,
-					fmt.Sprintf("RST - %d", i), bod)
-			}
-		}()
+	//for i := 3; i < 20; i++ {
+	//	fmt.Println(spaceServ.CreateSpace(locUrl, lToken, fmt.Sprintf("DEV%d", i), fmt.Sprintf("DEV%d", i)))
+	//}
 
-		//fmt.Println(spaceServ.CreateSpace(locUrl, lToken, fmt.Sprintf("DEV%d", a), fmt.Sprintf("DEV%d", a)))
-	}
+	// Operations took '124.458869' secs
+	//for a := 3; a <= 20; a++ {
+	//	//wg.Add(1)
+	//	go func() {
+	//		key := fmt.Sprintf("DEV%d", a)
+	//		sp := spaceServ.GetSpace(locUrl, lToken, key)
+	//		for i := 40; i < 45; i++ {
+	//			bod := ranServ.RandomString(15)
+	//			pageServ.CreateContent(locUrl, lToken, "page",
+	//				sp.Key,
+	//				sp.Homepage.Id,
+	//				fmt.Sprintf("RST - %d", i), bod)
+	//		}
+	//	}()
+
+	//fmt.Println(spaceServ.CreateSpace(locUrl, lToken, fmt.Sprintf("DEV%d", a), fmt.Sprintf("DEV%d", a)))
+	//}
 
 	// == Edit Page
 	//fmt.Println(pageServ.UpdatePage(locUrl, lToken, "2719745", "lorem", "lorem lorem lorem"))
