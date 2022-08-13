@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package andmal;
+option go_package = "com.andmal";
+
+message Ancestor {
+  string id = 1;
+}
+
+message Version {
+  string when = 1;
+  int32 number = 2;
+  string message=  3;
+}
+
+message View {
+  string value = 1;
+  string representation = 2;
+}
+
+message Storage {
+  string value = 1;
+  string representation = 2;
+}
+
+message Body {
+  View view = 1;
+  Storage storage = 2;
+}
+
+message Content {
+  string id = 1;
+  string title = 2;
+  string type = 3;
+  string status = 4;
+  repeated Ancestor ancestors = 5;
+  Content container = 6;
+  Version version = 7;
+  Body body = 8;
+  //  Space space;
+  //  Links _links;
+}
+
+message PageRequest {
+  string id = 1;
+}
+message PageResponse {
+  Content content = 1;
+}
+
+service PageService {
+  rpc GetPage (PageRequest) returns (Content) {};
+}
+

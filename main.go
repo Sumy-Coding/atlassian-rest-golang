@@ -1,6 +1,7 @@
 package main
 
 import (
+	"confluence-rest-golang/grpca"
 	"confluence-rest-golang/serv"
 	"fmt"
 	"os"
@@ -20,20 +21,18 @@ func main() {
 	ranServ := serv.RandService{}
 	tokService := serv.TokenService{}
 
-	//ncName, _ := os.LookupEnv("NC_ID")
-	//ncPass, b := os.LookupEnv("NC_PASS")
 	locUser := os.Getenv("CONF_LOC_U")
 	locPass, _ := os.LookupEnv("CONF_LOC_P")
 	//bhUser := os.Getenv("BHT_USER")
 	//bhPass, _ := os.LookupEnv("BHT_TOKEN")
-	//bhUser := os.Getenv("BHT_USER")
-	//bhPass, _ := os.LookupEnv("BHT_TOKEN")
 	lToken := tokService.GetToken(locUser, locPass)
-	//bhToken := tokService.GetToken(bhUser, bhPass)
 
 	ranServ.RandomString(10)
-	//var wg sync.WaitGroup
 	runtime.GOMAXPROCS(50)
+
+	msrv := grpca.MyServer{}
+	msrv.InitServer()
+
 	// == Get Page
 	//fmt.Println(pageServ.GetPage(bhtUrl, bhToken, "468287489"))
 
