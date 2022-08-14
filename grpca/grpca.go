@@ -19,7 +19,9 @@ var (
 
 // server is used to implement helloworld.GreeterServer.
 type MyServer struct {
-	pb.PageServiceServer
+	pb.UnimplementedPageServiceServer
+	//pb.PageServiceServer
+	//pages []*pb.Content
 }
 
 func (s *MyServer) GetPage(ctx context.Context, in *pb.PageRequest) (*pb.Content, error) {
@@ -29,8 +31,17 @@ func (s *MyServer) GetPage(ctx context.Context, in *pb.PageRequest) (*pb.Content
 	}, nil
 }
 
-func (srv MyServer) GetPages(ctx context.Context, req *pb.PageRequest) (*[]pb.Content, error) {
+func (s *MyServer) GetPages(req *pb.PagesRequest, stream *pb.PageService_GetPagesServer) error {
 	//
+	id := req.ParentId
+	log.Println(id)
+	pages := []pb.Content{
+		{Id: id},
+		{Id: id},
+		{Id: id},
+	}
+	stream.Send(pages)
+	return nil
 }
 
 func (srv *MyServer) InitServer() {
@@ -39,12 +50,18 @@ func (srv *MyServer) InitServer() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	s := grpc.NewServer()
-	pb.RegisterPageServiceServer(s, &MyServer{})
+	grpcServer := grpc.NewServer()
+	pb.RegisterPageServiceServer(grpcServer, newServer())
 	// Register reflection service on gRPC server.
-	reflection.Register(s)
+	reflection.Register(grpcServer)
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
+}
+
+func newServer() *MyServer {
+	s := &MyServer{}
+	//s.loadFeatures(*jsonDBFile)
+	return s
 }
