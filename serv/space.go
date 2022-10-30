@@ -5,7 +5,7 @@ import (
 	"confluence-rest-golang/models"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 )
@@ -27,7 +27,7 @@ func (s SpaceService) GetSpace(url string, tok string, key string) models.Space 
 	if err != nil {
 		log.Panicln(err)
 	}
-	rspb, err2 := ioutil.ReadAll(resp.Body)
+	rspb, err2 := io.ReadAll(resp.Body)
 	if err2 != nil {
 		log.Println(err2)
 	}
@@ -60,7 +60,7 @@ func (s SpaceService) CreateSpace(url string, tok string, key string, name strin
 	if err != nil {
 		log.Panicln(err)
 	}
-	rspb, err2 := ioutil.ReadAll(resp.Body)
+	rspb, err2 := io.ReadAll(resp.Body)
 	if err2 != nil {
 		log.Println(err2)
 	}

@@ -57,7 +57,7 @@ func (ps PageService) GetPage(url string, tok string, id string) models.Content 
 	}
 
 	var content models.Content
-	bts, err := ioutil.ReadAll(resp.Body)
+	bts, err := io.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &content)
 
 	return content
@@ -86,7 +86,7 @@ func (s PageService) GetChildren(url string, tok string, id string) models.Conte
 		log.Panicln(err)
 	}
 	var cnArray models.ContentArray
-	bts, err := ioutil.ReadAll(resp.Body)
+	bts, err := io.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &cnArray)
 
 	return cnArray
@@ -110,15 +110,60 @@ func (s PageService) GetDescendants(url string, tok string, id string, lim int) 
 	defer resp.Body.Close() // close request's body
 
 	var cnArray models.ContentArray
-	bts, err := ioutil.ReadAll(resp.Body)
+	bts, err := io.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &cnArray)
 
 	return cnArray
 
 }
 
-//createPage(CONF_URL, TOKEN, space, parentId, title, body)
-func (s PageService) CreateContent(wg *sync.WaitGroup, url string, tok string, ctype string, key string, parent string, title string, bd string) models.Content {
+func (s PageService) CreateContent(url string, tok string, ctype string, key string, parent string,
+	title string, bd string) models.Content {
+	client := &http.Client{
+		CheckRedirect: redirectPolicyFunc,
+	}
+	reqUrl := fmt.Sprintf("%s/rest/api/content", url)
+	ancts := []models.Ancestor{{Id: parent}} // parent
+	cntb := models.CreatePage{
+		Type:  ctype,
+		Title: title,
+		CreatePageSpace: models.CreatePageSpace{
+			Key: key,
+		}, Body: models.Body{
+			Storage: models.Storage{
+				Representation: "storage", Value: bd},
+		},
+		Ancestors: ancts,
+	}
+	mrsCtn, err2 := json.Marshal(cntb)
+	fmt.Println(string(mrsCtn))
+	if err2 != nil {
+		log.Panicln(err2)
+	}
+	req, err := http.NewRequest("POST", reqUrl, bytes.NewReader(mrsCtn))
+	req.Header.Add("Authorization", "Basic "+tok)
+	req.Header.Add("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Panicln(err)
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Panicln(err)
+		}
+	}(resp.Body)
+
+	var content models.Content
+	bts, err := io.ReadAll(resp.Body)
+	err = json.Unmarshal(bts, &content)
+	fmt.Println(string(bts))
+	return content
+}
+
+// createPage(CONF_URL, TOKEN, space, parentId, title, body)
+func (s PageService) CreateContentAsync(wg *sync.WaitGroup, url string, tok string, ctype string, key string, parent string,
+	title string, bd string) models.Content {
 	//wg.Add(1)
 	defer wg.Done()
 	client := &http.Client{
@@ -153,7 +198,7 @@ func (s PageService) CreateContent(wg *sync.WaitGroup, url string, tok string, c
 	}
 	defer resp.Body.Close()
 	var content models.Content
-	bts, err := ioutil.ReadAll(resp.Body)
+	bts, err := io.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &content)
 	fmt.Println(string(bts))
 	return content
@@ -296,7 +341,7 @@ func (s PageService) CopyPage(wg *sync.WaitGroup, url string, tok string, pid st
 
 	/* reqUrl := fmt.Sprintf("%s/rest/api/createdPage", url)
 	ancts := []models.Ancestor{{Id: parent}} // parent
-	cntb := models.CreateContent{
+	cntb := models.CreateContentAsync{
 		//Id:    "",
 		Type:  "page",
 		Title: orPage.Title,
@@ -316,7 +361,7 @@ func (s PageService) CopyPage(wg *sync.WaitGroup, url string, tok string, pid st
 	}
 
 	var createdPage models.Content
-	createdPage = s.CreateContent(wg, url, tok, "page", parPage.Space.Key, tid, ttl, orPage.Body.Storage.Value)
+	createdPage = s.CreateContentAsync(wg, url, tok, "page", parPage.Space.Key, tid, ttl, orPage.Body.Storage.Value)
 
 	// copy labels
 	if copyLabs {
