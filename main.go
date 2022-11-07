@@ -3,17 +3,18 @@ package main
 import (
 	"confluence-rest-golang/serv"
 	"fmt"
-	"log"
 	"os"
 	"runtime"
+	"sync"
 	"time"
 )
 
 func main() {
 	start := time.Now()
 
-	locUrl := "http://localhost:7201"
-	//bhtUrl := os.Getenv("BHT_URL")
+	cloudDcUrl := "http://confl-loadb-pxymvhygf6ct-1493255270.us-west-2.elb.amazonaws.com"
+	//locUrl := "http://localhost:7201"
+
 	pageServ := serv.PageService{}
 	//labServ := serv.LabelService{}
 	spaceServ := serv.SpaceService{}
@@ -22,9 +23,11 @@ func main() {
 
 	locUser := os.Getenv("CONF_LOC_U")
 	locPass, _ := os.LookupEnv("CONF_LOC_P")
-	//bhUser := os.Getenv("BHT_USER")
-	//bhPass, _ := os.LookupEnv("BHT_TOKEN")
+	dcUser := "admin"
+	dcPAss := "admin"
 	lToken := tokService.GetToken(locUser, locPass)
+	println(lToken)
+	dcToken := tokService.GetToken(dcUser, dcPAss)
 
 	ranServ.RandomString(10)
 	runtime.GOMAXPROCS(50)
@@ -33,7 +36,7 @@ func main() {
 	//msrv.InitServer()
 
 	// 										== Get Page
-	//fmt.Println(pageServ.GetPage(bhtUrl, bhToken, "468287489"))
+	//fmt.Println(pageServ.GetPage(lUrl, lTOken, "468287489"))
 
 	// 										=== Children
 	//child := pageServ.GetSpacePages(bhtUrl, bhToken, "DEMO")
@@ -44,38 +47,48 @@ func main() {
 	//	fmt.Println(page)
 	//}
 
-	// 										=== Create Pages
-	//space := spaceServ.GetSpace(locUrl, lToken, "test46")
-	//pageServ.CreateContent(locUrl, lToken, "page", space.Key, space.Homepage.Id, "HHHHH", ranServ.RandomString(100))
+	// 										=== Create Page
+	//space := spaceServ.GetSpace(cloudDcUrl, dcToken, "DEV15")
+	//pageServ.CreateContent(cloudDcUrl, dcToken, "page", space.Key, space.Homepage.Id, "GO page",
+	//	ranServ.RandomString(100))
+
+	// == several
+
+	//for i := 1; i <= 20; i++ {
+	//	space := spaceServ.GetSpace(cloudDcUrl, dcToken, "DEV11")
+	//	pageServ.CreateContent(cloudDcUrl, dcToken, "page", space.Key, space.Homepage.Id,
+	//		fmt.Sprintf("GO page %d", i),
+	//		ranServ.RandomString(100))
+	//}
 
 	// 									=== ASYNC == several
-	//var waitG sync.WaitGroup
-	//for i := 1; i <= 100; i++ {
-	//	waitG.Add(1)
-	//	//bod := ranServ.RandomString(2)
-	//	bod := "lorem asd asd das  d ds"
-	//	go func(count int) {
-	//		pageServ.CreateContentAsync(&waitG, locUrl, lToken, "page", "GOGO",
-	//			"2785364",
-	//			fmt.Sprintf("GOGO 100-1 - %d", count),
-	//			bod)
-	//	}(i)
-	//}
-	//waitG.Wait()
+	var waitG sync.WaitGroup
+	for i := 11; i <= 30; i++ {
+		waitG.Add(1)
+		bod := ranServ.RandomString(100)
+		go func(count int) {
+			space := spaceServ.GetSpace(cloudDcUrl, dcToken, "DEV15")
+			pageServ.CreateContent(cloudDcUrl, dcToken, "page", space.Key, space.Homepage.Id,
+				fmt.Sprintf("GO page %d", count), bod)
+		}(i)
+	}
+	waitG.Wait()
 
 	// 										==== COMPLEX HIERARCHY
-	var count int
-	for i := 40; i <= 50; i++ {
-		space := spaceServ.GetSpace(locUrl, lToken, fmt.Sprintf("test%d", i))
-		homePage := space.Homepage
-		for i := 1; i <= 100; i++ {
-			bod := ranServ.RandomString(100)
-			pageServ.CreateContent(locUrl, lToken, "page", space.Key, homePage.Id, fmt.Sprintf("%s - %d", homePage.Title, i), bod)
-		}
-		count += i
-	}
+	//var count int
+	//for i := 40; i <= 50; i++ {
+	//	space := spaceServ.GetSpace(locUrl, lToken, fmt.Sprintf("test%d", i))
+	//	homePage := space.Homepage
+	//	for i := 1; i <= 100; i++ {
+	//		bod := ranServ.RandomString(100)
+	//		pageServ.CreateContent(locUrl, lToken, "page", space.Key, homePage.Id, fmt.Sprintf("%s - %d", homePage.Title, i), bod)
+	//	}
+	//	count += i
+	//}
+	//
+	//log.Printf("%d pages created", count)
 
-	log.Printf("%d pages created", count)
+	// ============== SPACE ==================
 
 	// === GET space
 	//fmt.Println(spaceServ.GetSpace(locUrl, lToken, "DEV"))
