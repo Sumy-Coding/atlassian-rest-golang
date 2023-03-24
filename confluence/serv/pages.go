@@ -2,7 +2,7 @@ package serv
 
 import (
 	"bytes"
-	"confluence-rest-golang/models"
+	models2 "confluence-rest-golang/confluence/models"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -40,7 +40,7 @@ func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
 	return nil
 }
 
-func (ps PageService) GetPage(url string, tok string, id string) models.Content {
+func (ps PageService) GetPage(url string, tok string, id string) models2.Content {
 	client := myClient(url, tok)
 	expand := "expand=space,body.storage,history,version"
 
@@ -56,7 +56,7 @@ func (ps PageService) GetPage(url string, tok string, id string) models.Content 
 		log.Println(err)
 	}
 
-	var content models.Content
+	var content models2.Content
 	bts, err := io.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &content)
 
@@ -64,7 +64,7 @@ func (ps PageService) GetPage(url string, tok string, id string) models.Content 
 
 }
 
-func (s PageService) GetChildren(url string, tok string, id string) models.ContentArray {
+func (s PageService) GetChildren(url string, tok string, id string) models2.ContentArray {
 
 	expand := "expand=space,body.storage,history,version"
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/child/page?%s", url, id, expand)
@@ -85,7 +85,7 @@ func (s PageService) GetChildren(url string, tok string, id string) models.Conte
 	if err != nil {
 		log.Panicln(err)
 	}
-	var cnArray models.ContentArray
+	var cnArray models2.ContentArray
 	bts, err := io.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &cnArray)
 
@@ -93,7 +93,7 @@ func (s PageService) GetChildren(url string, tok string, id string) models.Conte
 
 }
 
-func (s PageService) GetDescendants(url string, tok string, id string, lim int) models.ContentArray {
+func (s PageService) GetDescendants(url string, tok string, id string, lim int) models2.ContentArray {
 
 	//expand := "?expand=body.storage,history,version"
 
@@ -109,7 +109,7 @@ func (s PageService) GetDescendants(url string, tok string, id string, lim int) 
 	}
 	defer resp.Body.Close() // close request's body
 
-	var cnArray models.ContentArray
+	var cnArray models2.ContentArray
 	bts, err := io.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &cnArray)
 
@@ -118,19 +118,19 @@ func (s PageService) GetDescendants(url string, tok string, id string, lim int) 
 }
 
 func (s PageService) CreateContent(url string, tok string, ctype string, key string, parent string,
-	title string, bd string) models.Content {
+	title string, bd string) models2.Content {
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
 	reqUrl := fmt.Sprintf("%s/rest/api/content", url)
-	ancts := []models.Ancestor{{Id: parent}} // parent
-	cntb := models.CreatePage{
+	ancts := []models2.Ancestor{{Id: parent}} // parent
+	cntb := models2.CreatePage{
 		Type:  ctype,
 		Title: title,
-		CreatePageSpace: models.CreatePageSpace{
+		CreatePageSpace: models2.CreatePageSpace{
 			Key: key,
-		}, Body: models.Body{
-			Storage: models.Storage{
+		}, Body: models2.Body{
+			Storage: models2.Storage{
 				Representation: "storage", Value: bd},
 		},
 		Ancestors: ancts,
@@ -154,7 +154,7 @@ func (s PageService) CreateContent(url string, tok string, ctype string, key str
 		}
 	}(resp.Body)
 
-	var content models.Content
+	var content models2.Content
 	bts, err := io.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &content)
 	fmt.Println(string(bts))
@@ -163,21 +163,21 @@ func (s PageService) CreateContent(url string, tok string, ctype string, key str
 
 // createPage(CONF_URL, TOKEN, space, parentId, title, body)
 func (s PageService) CreateContentAsync(wg *sync.WaitGroup, url string, tok string, ctype string, key string, parent string,
-	title string, bd string) models.Content {
+	title string, bd string) models2.Content {
 	//wg.Add(1)
 	defer wg.Done()
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
 	reqUrl := fmt.Sprintf("%s/rest/api/content", url)
-	ancts := []models.Ancestor{{Id: parent}} // parent
-	cntb := models.CreatePage{
+	ancts := []models2.Ancestor{{Id: parent}} // parent
+	cntb := models2.CreatePage{
 		Type:  ctype,
 		Title: title,
-		CreatePageSpace: models.CreatePageSpace{
+		CreatePageSpace: models2.CreatePageSpace{
 			Key: key,
-		}, Body: models.Body{
-			Storage: models.Storage{
+		}, Body: models2.Body{
+			Storage: models2.Storage{
 				Representation: "storage", Value: bd},
 		},
 		Ancestors: ancts,
@@ -197,7 +197,7 @@ func (s PageService) CreateContentAsync(wg *sync.WaitGroup, url string, tok stri
 		log.Panicln(err)
 	}
 	defer resp.Body.Close()
-	var content models.Content
+	var content models2.Content
 	bts, err := io.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &content)
 	fmt.Println(string(bts))
@@ -209,7 +209,7 @@ func (s PageService) PageContains(url string, tok string, id string, find string
 	return strings.Contains(body, find)
 }
 
-func (s PageService) GetSpacePages(url string, tok string, key string) models.ContentArray {
+func (s PageService) GetSpacePages(url string, tok string, key string) models2.ContentArray {
 
 	expand := "expand=body.storage,history,version"
 	reqUrl := fmt.Sprintf("%s/rest/api/content?type=page&spaceKey=%s&%s&limit=300", url, key, expand)
@@ -223,14 +223,14 @@ func (s PageService) GetSpacePages(url string, tok string, key string) models.Co
 		log.Panicln(err)
 	}
 	defer resp.Body.Close()
-	var cnArray models.ContentArray
+	var cnArray models2.ContentArray
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &cnArray)
 
 	return cnArray
 
 }
-func (p PageService) GetSpacePagesByLabel(url string, tok string, key string, lb string) models.ContentArray { // todo
+func (p PageService) GetSpacePagesByLabel(url string, tok string, key string, lb string) models2.ContentArray { // todo
 	//?cql=space+%3D+"DEV"+and+label+%3D+"aa"
 	reqUrl := fmt.Sprintf("%s/rest/api/search?cql=space=\"%s\"+and+label+%3D+\"%s\"", url, key, lb)
 	req, err := http.NewRequest("GET", reqUrl, nil)
@@ -241,14 +241,14 @@ func (p PageService) GetSpacePagesByLabel(url string, tok string, key string, lb
 		log.Panicln(err)
 	}
 	defer resp.Body.Close()
-	var cnArray models.ContentArray
+	var cnArray models2.ContentArray
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &cnArray)
 
 	return cnArray
 }
 
-func (s PageService) GetSpaceBlogs(url string, tok string, key string) models.ContentArray {
+func (s PageService) GetSpaceBlogs(url string, tok string, key string) models2.ContentArray {
 
 	reqUrl := fmt.Sprintf("%s/rest/api/content?type=blogpost&spaceKey=%s&limit=300", url, key) //limit=300
 	req, err := http.NewRequest("GET", reqUrl, nil)
@@ -261,7 +261,7 @@ func (s PageService) GetSpaceBlogs(url string, tok string, key string) models.Co
 		log.Panicln(err)
 	}
 	defer resp.Body.Close()
-	var cnArray models.ContentArray
+	var cnArray models2.ContentArray
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &cnArray)
 
@@ -288,7 +288,7 @@ func (s PageService) DeletePageLabels(url string, tok string, id string, labels 
 	return "labels deleted "
 }
 
-func (s PageService) DeletePage(url string, tok string, id string) models.Content {
+func (s PageService) DeletePage(url string, tok string, id string) models2.Content {
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%d", url, id) //limit=300
 	req, err := http.NewRequest("DELETE", reqUrl, nil)
 	req.Header.Add("Authorization", "Basic "+tok)
@@ -298,7 +298,7 @@ func (s PageService) DeletePage(url string, tok string, id string) models.Conten
 		log.Panicln(err)
 	}
 	defer resp.Body.Close()
-	var cnt models.Content
+	var cnt models2.Content
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &cnt)
 	return cnt
@@ -330,7 +330,7 @@ func (s PageService) ScrollTemplates(url string, tok string, key string) []strin
 }
 
 func (s PageService) CopyPage(wg *sync.WaitGroup, url string, tok string, pid string, tid string,
-	copyLabs bool, copyAtt bool, copyCo bool) models.Content {
+	copyLabs bool, copyAtt bool, copyCo bool) models2.Content {
 	// todo - copyLabels, copyComments, copyAttaches
 
 	log.Println("Copying page " + pid)
@@ -360,7 +360,7 @@ func (s PageService) CopyPage(wg *sync.WaitGroup, url string, tok string, pid st
 		ttl = orPage.Title
 	}
 
-	var createdPage models.Content
+	var createdPage models2.Content
 	createdPage = s.CreateContentAsync(wg, url, tok, "page", parPage.Space.Key, tid, ttl, orPage.Body.Storage.Value)
 
 	// copy labels
@@ -389,11 +389,11 @@ func (s PageService) CopyPage(wg *sync.WaitGroup, url string, tok string, pid st
 }
 
 func (s PageService) CopyPageDescs(wg *sync.WaitGroup, url string, tok string, pid string, tgt string, nTitle string,
-	copyLabs bool, copyCo bool, copyAtt bool) []models.Content {
+	copyLabs bool, copyCo bool, copyAtt bool) []models2.Content {
 
 	// todo - copyLabels, copyComments, copyAttaches + later 'TargetServer'
 	log.Printf("Copying %s page descendants", pid)
-	cntList := make([]models.Content, 0)
+	cntList := make([]models2.Content, 0)
 
 	//root := s.GetPage(url, tok, pid)
 	childs := s.GetChildren(url, tok, pid).Results
@@ -425,7 +425,7 @@ func (s PageService) CopyPageDescs(wg *sync.WaitGroup, url string, tok string, p
 	return cntList
 }
 
-func (s PageService) UpdatePage(url string, tok string, pid string, find string, repl string) models.Content {
+func (s PageService) UpdatePage(url string, tok string, pid string, find string, repl string) models2.Content {
 
 	log.Printf("Updating %s page", pid)
 	client := &http.Client{
@@ -438,15 +438,15 @@ func (s PageService) UpdatePage(url string, tok string, pid string, find string,
 	page := s.GetPage(url, tok, pid)
 	pBody := page.Body.Storage.Value
 	fBody := strings.Replace(pBody, find, repl, -1)
-	cntb := models.EditPage{
+	cntb := models2.EditPage{
 		Id:    page.Id,
 		Title: page.Title,
 		Type:  "page",
-		Body: models.Body{
-			Storage: models.Storage{
+		Body: models2.Body{
+			Storage: models2.Storage{
 				Representation: "storage", Value: fBody},
 		},
-		Version: models.VersionE{Number: page.Version.Number + 1},
+		Version: models2.VersionE{Number: page.Version.Number + 1},
 	}
 	pageBytes, err2 := json.Marshal(cntb)
 	if err2 != nil {
@@ -462,7 +462,7 @@ func (s PageService) UpdatePage(url string, tok string, pid string, find string,
 		log.Panicln(err)
 	}
 	defer resp.Body.Close()
-	var content models.Content
+	var content models2.Content
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &content)
 	fmt.Println(string(bts))
@@ -471,7 +471,7 @@ func (s PageService) UpdatePage(url string, tok string, pid string, find string,
 
 }
 
-func (s PageService) GetPageAttaches(url string, tok string, pid string) models.ContentArray {
+func (s PageService) GetPageAttaches(url string, tok string, pid string) models2.ContentArray {
 
 	log.Printf("Getting %s page attachments", pid)
 	client := &http.Client{
@@ -489,7 +489,7 @@ func (s PageService) GetPageAttaches(url string, tok string, pid string) models.
 		log.Panicln(err)
 	}
 	defer resp.Body.Close()
-	var carr models.ContentArray
+	var carr models2.ContentArray
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &carr)
 	fmt.Println(string(bts))
@@ -498,7 +498,7 @@ func (s PageService) GetPageAttaches(url string, tok string, pid string) models.
 
 }
 
-func (s PageService) GetAttach(url string, tok string, aid string) models.Content {
+func (s PageService) GetAttach(url string, tok string, aid string) models2.Content {
 
 	log.Printf("Getting %s attachment", aid)
 	client := &http.Client{
@@ -516,7 +516,7 @@ func (s PageService) GetAttach(url string, tok string, aid string) models.Conten
 		log.Panicln(err)
 	}
 	defer resp.Body.Close()
-	var content models.Content
+	var content models2.Content
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &content)
 	fmt.Println(string(bts))
@@ -632,7 +632,7 @@ func (s PageService) CopyAttach(url string, tok string, tpid string, atId string
 
 }
 
-func (s PageService) GetComment(url string, tok string, cid string) models.Content {
+func (s PageService) GetComment(url string, tok string, cid string) models2.Content {
 
 	log.Printf("Getting %s page coment", cid)
 	client := &http.Client{
@@ -650,7 +650,7 @@ func (s PageService) GetComment(url string, tok string, cid string) models.Conte
 		log.Panicln(err)
 	}
 	defer resp.Body.Close()
-	var content models.Content
+	var content models2.Content
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &content)
 	fmt.Println(string(bts))
@@ -658,7 +658,7 @@ func (s PageService) GetComment(url string, tok string, cid string) models.Conte
 	return content
 }
 
-func (p PageService) AddComment(url string, tok string, cid string, pid string) models.Content {
+func (p PageService) AddComment(url string, tok string, cid string, pid string) models2.Content {
 	log.Printf("Copying %s comment to %s page", cid, pid)
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
@@ -668,14 +668,14 @@ func (p PageService) AddComment(url string, tok string, cid string, pid string) 
 	page := p.GetPage(url, tok, pid)
 
 	reqUrl := fmt.Sprintf("%s/rest/api/content", url)
-	cntb := models.CreateComment{
+	cntb := models2.CreateComment{
 		//Id:    "",
 		Type:  "comment",
 		Title: cmm.Title,
-		CreatePageSpace: models.CreatePageSpace{
+		CreatePageSpace: models2.CreatePageSpace{
 			Key: cmm.Space.Key,
-		}, Body: models.Body{
-			Storage: models.Storage{
+		}, Body: models2.Body{
+			Storage: models2.Storage{
 				Representation: "storage", Value: cmm.Body.Storage.Value},
 		},
 		Container: page,
@@ -695,7 +695,7 @@ func (p PageService) AddComment(url string, tok string, cid string, pid string) 
 	}
 	defer resp.Body.Close()
 
-	var content models.Content
+	var content models2.Content
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &content)
 	fmt.Println(string(bts))

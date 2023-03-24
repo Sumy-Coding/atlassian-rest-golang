@@ -2,9 +2,10 @@ package serv
 
 import (
 	"bytes"
-	"confluence-rest-golang/models"
+	models2 "confluence-rest-golang/confluence/models"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,8 +14,7 @@ import (
 type LabelService struct {
 }
 
-func (l LabelService) GetPageLabels(url string, tok string, pid string) models.LabelArray {
-
+func (l LabelService) GetPageLabels(url string, tok string, pid string) models2.LabelArray {
 	log.Printf("Getting %s page labels", pid)
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/label", url, pid)
 	req, err := http.NewRequest("GET", reqUrl, nil)
@@ -27,22 +27,22 @@ func (l LabelService) GetPageLabels(url string, tok string, pid string) models.L
 		log.Panicln(err)
 	}
 	defer resp.Body.Close()
-	var lArr models.LabelArray
-	bts, err := ioutil.ReadAll(resp.Body)
+	var lArr models2.LabelArray
+	bts, err := io.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &lArr)
 	log.Println(lArr)
 
 	return lArr
 }
 
-func (l LabelService) AddLabels(url string, tok string, pid string, labels []string) models.LabelArray {
+func (l LabelService) AddLabels(url string, tok string, pid string, labels []string) models2.LabelArray {
 
 	log.Println("Adding labels to " + pid)
 
-	lbls := make([]models.CreateLabel, 0)
+	lbls := make([]models2.CreateLabel, 0)
 
 	for _, l := range labels {
-		lbObj := models.CreateLabel{Prefix: "global", Name: l}
+		lbObj := models2.CreateLabel{Prefix: "global", Name: l}
 		lbls = append(lbls, lbObj)
 	}
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/label", url, pid)
@@ -60,7 +60,7 @@ func (l LabelService) AddLabels(url string, tok string, pid string, labels []str
 		log.Panicln(err)
 	}
 	defer resp.Body.Close()
-	var label models.LabelArray
+	var label models2.LabelArray
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &label)
 
