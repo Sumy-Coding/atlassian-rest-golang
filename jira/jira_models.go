@@ -235,3 +235,39 @@ type Workflow struct {
 	LastModifiedDate string `json:"lastModifiedDate,omitempty"`
 	LastModifiedUser string `json:"lastModifiedUser,omitempty"`
 }
+
+type CreateIssueProject struct {
+	Id string `json:"id"`
+}
+
+type CIIssuetype struct {
+	Id string `json:"id"`
+}
+
+type Assignee struct {
+	Name string `json:"name"`
+}
+
+type Reporter struct {
+	Name string `json:"name"`
+}
+
+type Priority struct {
+	Id string `json:"id"`
+}
+
+type CreateFields struct {
+	Project     CreateIssueProject `json:"project"`
+	Summary     string             `json:"summary"`
+	Issuetype   CIIssuetype        `json:"issuetype"`
+	Assignee    Assignee           `json:"assignee"`
+	Reporter    Reporter           `json:"reporter"`
+	Priority    Priority           `json:"priority"`
+	Labels      []string           `json:"labels"`
+	Description string             `json:"description"`
+	Duedate     string             `json:"duedate"`
+}
+
+type CreateIssue struct {
+	Fields CreateFields `json:"fields"`
+}
