@@ -36,7 +36,6 @@ func (l LabelService) GetPageLabels(url string, tok string, pid string) models2.
 }
 
 func (l LabelService) AddLabels(url string, tok string, pid string, labels []string) models2.LabelArray {
-
 	log.Println("Adding labels to " + pid)
 
 	lbls := make([]models2.CreateLabel, 0)

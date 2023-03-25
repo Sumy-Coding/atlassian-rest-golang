@@ -240,6 +240,13 @@ type CreateIssueProject struct {
 	Id string `json:"id"`
 }
 
+// {"id":"10103","key":"AAA-9","self":"http://localhost:9500/rest/api/2/issue/10103"}
+type CreatedIssue struct {
+	Id   string `json:"id"`
+	Key  string `json:"key"`
+	Self string `json:"self"`
+}
+
 type CIIssuetype struct {
 	Id string `json:"id"`
 }

@@ -1,9 +1,11 @@
 package jira
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 )
@@ -34,6 +36,40 @@ func (is IssueService) GetIssue(url string, token string, key string) Issue {
 		return Issue{}
 	}
 	json.Unmarshal(data, &issue)
+
+	return issue
+}
+
+func (is IssueService) CreateIssue(url string, token string, data CreateIssue) CreatedIssue {
+	reqUrl := fmt.Sprintf("%s/rest/api/2/issue/", url)
+	client := GetClient()
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		log.Println(err)
+	}
+	req, err := http.NewRequest(http.MethodPost, reqUrl, bytes.NewReader(jsonData))
+
+	req.Header.Add("Authorization", fmt.Sprintf("Basic %s", token))
+	req.Header.Add("Content-Type", "application/json")
+	if err != nil {
+		fmt.Printf("Error when creating request. Err: %s", err)
+	}
+
+	response, err := client.Do(req)
+	if err != nil {
+		log.Println(err)
+	}
+	defer response.Body.Close()
+
+	bData, err := io.ReadAll(response.Body)
+	if err != nil {
+		log.Println(err)
+	}
+	var issue CreatedIssue
+	err2 := json.Unmarshal(bData, &issue)
+	if err != nil {
+		log.Println(err2)
+	}
 
 	return issue
 }

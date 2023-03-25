@@ -1,4 +1,4 @@
-package serv
+package main
 
 import "encoding/base64"
 

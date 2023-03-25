@@ -1,7 +1,6 @@
 package main
 
 import (
-	serv2 "confluence-rest-golang/confluence/serv"
 	"confluence-rest-golang/jira"
 	"fmt"
 	"runtime"
@@ -14,7 +13,7 @@ func main() {
 	locUrl := "http://localhost:9500"
 
 	//ranServ := serv2.RandService{}
-	tokService := serv2.TokenService{}
+	tokService := TokenService{}
 
 	//locUser := os.Getenv("CONF_LOC_U")
 	//locPass, _ := os.LookupEnv("CONF_LOC_P")
@@ -26,8 +25,21 @@ func main() {
 	runtime.GOMAXPROCS(50)
 
 	is := jira.IssueService{}
-	issue := is.GetIssue(locUrl, lToken, "AAA-3")
-	fmt.Println(issue)
+	//issue := is.GetIssue(locUrl, lToken, "AAA-3")
+	//fmt.Println(issue)
+
+	created := is.CreateIssue(locUrl, lToken, jira.CreateIssue{Fields: jira.CreateFields{
+		Project:     jira.CreateIssueProject{Id: "10000"},
+		Summary:     "Test",
+		Issuetype:   jira.CIIssuetype{Id: "10006"},
+		Assignee:    jira.Assignee{Name: "admin"},
+		Reporter:    jira.Reporter{Name: "admin"},
+		Priority:    jira.Priority{Id: "3"},
+		Labels:      []string{"aa", "bb"},
+		Description: "Go test",
+		Duedate:     "2023-04-10",
+	}})
+	fmt.Println(created)
 
 	// == END
 	fmt.Printf("Operations took '%f' secs", time.Now().Sub(start).Seconds())
