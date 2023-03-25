@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -72,4 +73,45 @@ func (is IssueService) CreateIssue(url string, token string, data CreateIssue) C
 	}
 
 	return issue
+}
+
+func (is IssueService) UpdateField(url string, token string, id string, fieldId string, data interface{}) string {
+	reqUrl := fmt.Sprintf("%s/rest/api/2/issue/%s", url, id)
+	client := GetClient()
+	req, err := http.NewRequest(http.MethodGet, reqUrl, nil)
+	req.Header.Add("Authorization", fmt.Sprintf("Basic %s", token))
+	if err != nil {
+		fmt.Printf("Error when creating request. Err: %s", err)
+	}
+	response, err := client.Do(req)
+	if err != nil {
+		log.Println(err)
+	}
+	defer response.Body.Close()
+
+	bData, err := io.ReadAll(response.Body)
+	if err != nil {
+		log.Println(err)
+	}
+	var issue Issue
+	err2 := json.Unmarshal(bData, &issue)
+	if err != nil {
+		log.Println(err2)
+	}
+
+	// update
+	reqUrl2 := fmt.Sprintf("%s/rest/api/2/issue/%s", url, id)
+	req2, err := http.NewRequest(http.MethodPut, reqUrl2, strings.NewReader(
+		fmt.Sprintf("{\"fields\":{ %s: %s }}", fieldId, data)))
+	req.Header.Add("Authorization", fmt.Sprintf("Basic %s", token))
+	if err != nil {
+		fmt.Printf("Error when creating request. Err: %s", err)
+	}
+	resp, err := client.Do(req2)
+	if err != nil {
+		log.Println(err)
+	}
+	defer resp.Body.Close()
+
+	return "field updated"
 }

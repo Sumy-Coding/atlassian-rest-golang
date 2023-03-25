@@ -1,6 +1,7 @@
 package main
 
 import (
+	atlas "confluence-rest-golang"
 	"confluence-rest-golang/jira"
 	"fmt"
 	"runtime"
@@ -13,7 +14,7 @@ func main() {
 	locUrl := "http://localhost:9500"
 
 	//ranServ := serv2.RandService{}
-	tokService := TokenService{}
+	tokService := atlas.TokenService{}
 
 	//locUser := os.Getenv("CONF_LOC_U")
 	//locPass, _ := os.LookupEnv("CONF_LOC_P")

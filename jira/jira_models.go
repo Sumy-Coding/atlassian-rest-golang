@@ -278,3 +278,16 @@ type CreateFields struct {
 type CreateIssue struct {
 	Fields CreateFields `json:"fields"`
 }
+
+type WorkflowScheme struct {
+	ID                int    `json:"id"`
+	Name              string `json:"name"`
+	Description       string `json:"description"`
+	DefaultWorkflow   string `json:"defaultWorkflow"`
+	IssueTypeMappings struct {
+		IsueTypeID2 string `json:"IsueTypeId2"`
+		IsueTypeID  string `json:"IsueTypeId"`
+	} `json:"issueTypeMappings"`
+	Draft bool   `json:"draft"`
+	Self  string `json:"self"`
+}
