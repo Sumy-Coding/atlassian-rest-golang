@@ -2,7 +2,7 @@ package serv
 
 import (
 	"bytes"
-	"confluence-rest-golang"
+	atlas "confluence-rest-golang"
 	models2 "confluence-rest-golang/confluence/models"
 	"encoding/json"
 	"fmt"
@@ -35,7 +35,7 @@ var (
 func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
 	locUser, _ := os.LookupEnv("CONF_LOC_U")
 	locPass, _ := os.LookupEnv("CONF_LOC_P")
-	tokServ := main.TokenService{}
+	tokServ := atlas.TokenService{}
 	tok := tokServ.GetToken(locUser, locPass)
 	req.Header.Add("Authorization", "Basic "+tok)
 	return nil
