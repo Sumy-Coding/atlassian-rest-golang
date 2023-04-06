@@ -1,11 +1,13 @@
-package atlas
+package token
 
-import "encoding/base64"
+import (
+	"encoding/base64"
+	"fmt"
+)
 
-type TokenService struct {
-}
+type TokenService struct{}
 
 func (t TokenService) GetToken(u string, p string) string {
-	auth := u + ":" + p
+	auth := fmt.Sprintf("%s:%s", u, p)
 	return base64.StdEncoding.EncodeToString([]byte(auth))
 }

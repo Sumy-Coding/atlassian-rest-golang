@@ -1,8 +1,8 @@
 package serv
 
 import (
+	"atlas-rest-golang/confluence/models"
 	"bytes"
-	models2 "confluence-rest-golang/confluence/models"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,7 +13,7 @@ import (
 type SpaceService struct {
 }
 
-func (s SpaceService) GetSpace(url string, tok string, key string) models2.Space {
+func (s SpaceService) GetSpace(url string, tok string, key string) models.Space {
 	var client *http.Client = &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
@@ -31,7 +31,7 @@ func (s SpaceService) GetSpace(url string, tok string, key string) models2.Space
 	if err2 != nil {
 		log.Println(err2)
 	}
-	var space models2.Space
+	var space models.Space
 
 	err = json.Unmarshal(rspb, &space)
 	fmt.Println(string(rspb))
@@ -40,7 +40,7 @@ func (s SpaceService) GetSpace(url string, tok string, key string) models2.Space
 
 }
 
-func (s SpaceService) CreateSpace(url string, tok string, key string, name string) models2.Space {
+func (s SpaceService) CreateSpace(url string, tok string, key string, name string) models.Space {
 
 	log.Printf("Creating space %s", name)
 
@@ -48,7 +48,7 @@ func (s SpaceService) CreateSpace(url string, tok string, key string, name strin
 		CheckRedirect: redirectPolicyFunc,
 	}
 
-	space := models2.CreateSpace{Key: key, Name: name}
+	space := models.CreateSpace{Key: key, Name: name}
 	bod, _ := json.Marshal(space)
 	reqUrl := fmt.Sprintf("%s/rest/api/space", url)
 	req, err := http.NewRequest("POST", reqUrl, bytes.NewReader(bod))
@@ -65,7 +65,7 @@ func (s SpaceService) CreateSpace(url string, tok string, key string, name strin
 		log.Println(err2)
 	}
 	log.Printf("Response is %s", string(rspb))
-	var crSPace models2.Space
+	var crSPace models.Space
 	err4 := json.Unmarshal(rspb, crSPace)
 	if err != nil {
 		log.Panicln(err4)

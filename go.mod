@@ -1,4 +1,4 @@
-module confluence-rest-golang
+module atlas-rest-golang
 
 go 1.20
 

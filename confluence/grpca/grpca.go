@@ -1,7 +1,7 @@
 package grpca
 
 import (
-	pb "confluence-rest-golang/proto"
+	pb "atlas-rest-golang/proto"
 	"context"
 	"flag"
 	"fmt"

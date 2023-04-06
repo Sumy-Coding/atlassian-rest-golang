@@ -1,8 +1,8 @@
 package serv
 
 import (
+	"atlas-rest-golang/confluence/models"
 	"bytes"
-	models2 "confluence-rest-golang/confluence/models"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,12 +14,10 @@ import (
 type LabelService struct {
 }
 
-func (l LabelService) GetPageLabels(url string, tok string, pid string) models2.LabelArray {
+func (l LabelService) GetPageLabels(url string, tok string, pid string) models.LabelArray {
 	log.Printf("Getting %s page labels", pid)
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/label", url, pid)
 	req, err := http.NewRequest("GET", reqUrl, nil)
-	//req.SetBasicAuth("admin", "admin")
-	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)
 	client := myClient(reqUrl, tok)
 	resp, err := client.Do(req)
@@ -27,7 +25,7 @@ func (l LabelService) GetPageLabels(url string, tok string, pid string) models2.
 		log.Panicln(err)
 	}
 	defer resp.Body.Close()
-	var lArr models2.LabelArray
+	var lArr models.LabelArray
 	bts, err := io.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &lArr)
 	log.Println(lArr)
@@ -35,13 +33,13 @@ func (l LabelService) GetPageLabels(url string, tok string, pid string) models2.
 	return lArr
 }
 
-func (l LabelService) AddLabels(url string, tok string, pid string, labels []string) models2.LabelArray {
+func (l LabelService) AddLabels(url string, tok string, pid string, labels []string) models.LabelArray {
 	log.Println("Adding labels to " + pid)
 
-	lbls := make([]models2.CreateLabel, 0)
+	lbls := make([]models.CreateLabel, 0)
 
 	for _, l := range labels {
-		lbObj := models2.CreateLabel{Prefix: "global", Name: l}
+		lbObj := models.CreateLabel{Prefix: "global", Name: l}
 		lbls = append(lbls, lbObj)
 	}
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/label", url, pid)
@@ -59,7 +57,7 @@ func (l LabelService) AddLabels(url string, tok string, pid string, labels []str
 		log.Panicln(err)
 	}
 	defer resp.Body.Close()
-	var label models2.LabelArray
+	var label models.LabelArray
 	bts, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &label)
 
