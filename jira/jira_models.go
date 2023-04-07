@@ -260,7 +260,8 @@ type Reporter struct {
 }
 
 type Priority struct {
-	Id string `json:"id"`
+	Id   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type CreateFields struct {

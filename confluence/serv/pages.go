@@ -32,13 +32,38 @@ var (
 //	return base64.StdEncoding.EncodeToString([]byte(auth))
 //}
 
+// Cloud Rest API V2
+// https://developer.atlassian.com/cloud/confluence/rest/v2/api-group-page/#api-pages-post
+
 func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
-	locUser, _ := os.LookupEnv("CONF_LOC_U")
-	locPass, _ := os.LookupEnv("CONF_LOC_P")
+	locUser, _ := os.LookupEnv("ATLAS_USER")
+	locPass, _ := os.LookupEnv("ATLAS_PASS")
 	tokServ := token.TokenService{}
 	tok := tokServ.GetToken(locUser, locPass)
 	req.Header.Add("Authorization", "Basic "+tok)
 	return nil
+}
+
+// api: /rest/v2
+func (ps PageService) GetPageTitleKey(url string, tok string, space string, title string) models.Content {
+	client := myClient(url, tok)
+	expand := "expand=space,body.storage,history,version"
+
+	reqUrl := fmt.Sprintf("%s/rest/api/content?spaceKey=%s&title=%s&%s", url, space, title, expand)
+	log.Println("GET REQ URL is " + reqUrl)
+
+	req, err := http.NewRequest("GET", reqUrl, nil)
+	req.Header.Add("Authorization", "Basic "+tok)
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Println(err)
+	}
+
+	var content models.Content
+	bts, err := io.ReadAll(resp.Body)
+	err = json.Unmarshal(bts, &content)
+
+	return content
 }
 
 func (ps PageService) GetPage(url string, tok string, id string) models.Content {
@@ -60,7 +85,6 @@ func (ps PageService) GetPage(url string, tok string, id string) models.Content 
 	err = json.Unmarshal(bts, &content)
 
 	return content
-
 }
 
 func (s PageService) GetChildren(url string, tok string, id string) models.ContentArray {

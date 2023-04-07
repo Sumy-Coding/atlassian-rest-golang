@@ -1,25 +1,47 @@
 package main
 
 import (
+	"atlas-rest-golang/confluence/models"
 	"atlas-rest-golang/confluence/serv"
+	"atlas-rest-golang/jira"
 	"atlas-rest-golang/srv"
 	"fmt"
+	"log"
 	"os"
 	"runtime"
 	"time"
 )
 
 func main() {
+	runtime.GOMAXPROCS(50)
 	start := time.Now()
 
-	// args
 	argsWithoutProg := os.Args[1:]
 	//args := flag.Args()
 	//flag.Parse()
 
 	var instanceType string
 	var action string
-	var id string
+
+	// confluence
+	var pageId string
+	var pageTitle string
+	var spaceKey string
+
+	// jira
+	var projKey string
+	var projId string
+	var issueKey string
+
+	// create issue data
+	var summary string
+	var description string
+	var issTypeId string // 10006
+	var dueDate string   // "2023-04-10"
+	var issueLabels []string
+	var assignee string
+	var reporter string
+	var priorityName string
 
 	for a := 0; a < len(argsWithoutProg); a++ {
 		if argsWithoutProg[a] == "--type" {
@@ -28,49 +50,89 @@ func main() {
 		if argsWithoutProg[a] == "--action" {
 			action = argsWithoutProg[a+1]
 		}
+
+		// confluence
 		if argsWithoutProg[a] == "--id" {
-			id = argsWithoutProg[a+1]
+			pageId = argsWithoutProg[a+1]
+		}
+		if argsWithoutProg[a] == "--space" {
+			spaceKey = argsWithoutProg[a+1]
+		}
+		if argsWithoutProg[a] == "--title" {
+			pageTitle = argsWithoutProg[a+1]
+		}
+
+		// jira
+		if argsWithoutProg[a] == "--projKey" {
+			projKey = argsWithoutProg[a+1]
+		}
+		if argsWithoutProg[a] == "--summary" {
+			summary = argsWithoutProg[a+1]
+		}
+		if argsWithoutProg[a] == "--priority" {
+			priorityName = argsWithoutProg[a+1]
 		}
 	}
 
-	fmt.Println(instanceType)
-	fmt.Println(action)
-	fmt.Println(id)
-
-	//locJiraUrl := "http://localhost:9500"
-
 	tokService := token.TokenService{}
-	anmaWiki := os.Getenv("ANMA_URL")
-	anmaTok := os.Getenv("ANMA_PASS")
+	url := os.Getenv("ATLAS_URL")
+	pass := os.Getenv("ATLAS_PASS")
+	anmaToken := tokService.GetToken(os.Getenv("ATLAS_USER"), pass)
 
-	//locUser := os.Getenv("CONF_LOC_U")
-	//locPass, _ := os.LookupEnv("CONF_LOC_P")
-	anmaToken := tokService.GetToken(os.Getenv("ANMA_USER"), anmaTok)
+	// Confluence instance
+	switch instanceType {
+	case "confluence":
+		switch action {
+		case "getPage":
+			ps := serv.PageService{}
+			if pageId != "" {
+				page := ps.GetPage(url, anmaToken, pageId)
+				printPage(page)
+			} else {
+				page := ps.GetPageTitleKey(url, anmaToken, spaceKey, pageTitle)
+				printPage(page)
+			}
+		case "getSpace":
+			ss := serv.SpaceService{}
+			space := ss.GetSpace(url, anmaToken, spaceKey)
+			fmt.Println(space)
+		}
 
-	//randomString := ranServ.RandomString(10)
-	runtime.GOMAXPROCS(50)
+	// Jira instance
+	case "jira":
+		is := jira.IssueService{}
+		ps := jira.ProjectService{}
+		switch action {
+		case "getIssue":
+			issue := is.GetIssue(url, anmaToken, issueKey)
+			fmt.Println(issue)
+		case "getProject":
+			proj := ps.GetProject(url, anmaToken, projKey)
+			fmt.Println(proj)
+		case "createIssue":
+			created := is.CreateIssue(url, anmaToken, jira.CreateIssue{Fields: jira.CreateFields{
+				Project:     jira.CreateIssueProject{Id: projId}, //10000
+				Summary:     summary,
+				Issuetype:   jira.CIIssuetype{Id: issTypeId},
+				Assignee:    jira.Assignee{Name: assignee},
+				Reporter:    jira.Reporter{Name: reporter},
+				Priority:    jira.Priority{Name: priorityName},
+				Labels:      issueLabels,
+				Description: description,
+				Duedate:     dueDate,
+			}})
+			fmt.Println(created)
 
-	//is := jira.IssueService{}
-	//issue := is.GetIssue(locUrl, lToken, "AAA-3")
-	//fmt.Println(issue)
+		}
 
-	//created := is.CreateIssue(locUrl, lToken, jira.CreateIssue{Fields: jira.CreateFields{
-	//	Project:     jira.CreateIssueProject{Id: "10000"},
-	//	Summary:     "Test",
-	//	Issuetype:   jira.CIIssuetype{Id: "10006"},
-	//	Assignee:    jira.Assignee{Name: "admin"},
-	//	Reporter:    jira.Reporter{Name: "admin"},
-	//	Priority:    jira.Priority{Id: "3"},
-	//	Labels:      []string{"aa", "bb"},
-	//	Description: "Go test",
-	//	Duedate:     "2023-04-10",
-	//}})
-	//fmt.Println(created)
-
-	ps := serv.PageService{}
-	page := ps.GetPage(anmaWiki, anmaToken, id)
-	fmt.Println(page)
+	}
 
 	// == END
 	fmt.Printf("Operations took '%f' secs", time.Now().Sub(start).Seconds())
+}
+
+func printPage(page models.Content) {
+	log.Println("============ Content =============")
+	log.Printf("\nType: %s\nTitle: %s\nSpace: %s\nBody: %s",
+		page.Type, page.Title, page.Space.Name, page.Body.Storage.Value)
 }

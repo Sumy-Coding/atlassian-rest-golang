@@ -2,7 +2,12 @@ package jira
 
 type ProjectService struct{}
 
-func (is IssueService) GetProjects(url string, token string, id string) Project {
-	//
+func (ps ProjectService) GetProjects(url string, token string) []Project {
+	//todo
+	return []Project{}
+}
+
+func (ps ProjectService) GetProject(url string, token string, key string) Project {
+	//todo
 	return Project{}
 }
