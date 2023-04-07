@@ -1,11 +1,14 @@
 # Confluence REST service on Golang
 
-https://developer.atlassian.com/server/confluence/confluence-rest-api-examples/
+The CLI app (or internal Go API) to interact with Confluence and Jira.
 
 - Groovy version - https://github.com/AndriiMaliuta/confluence-rest-service-groovy
 - Rust version - https://github.com/AndriiMaliuta/rust-atlas-rest
 
 # Native CLI app
+### Installation
+Download execution file from Releases https://github.com/AndriiMaliuta/atlassian-rest-golang/releases.
+
 
 ### Confluence
 ```bash

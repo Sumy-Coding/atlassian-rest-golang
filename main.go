@@ -130,6 +130,12 @@ func main() {
 				ls.AddLabels(url, anmaToken, created.Id, strings.Split(labels, ","))
 			}
 			printPage(created)
+		case "addLabel":
+			page := ps.GetPage(url, anmaToken, pageId)
+			if labels != "" {
+				ls.AddLabels(url, anmaToken, page.Id, strings.Split(labels, ","))
+			}
+			log.Printf("Added labels '%s' to page '%s'", labels, page.Id)
 		}
 
 	// Jira instance
