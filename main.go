@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -27,11 +28,17 @@ func main() {
 	var pageId string
 	var pageTitle string
 	var spaceKey string
+	var parent string
+	var body string
+	var labels string
 
 	// jira
 	var projKey string
 	var projId string
 	var issueKey string
+
+	//misc
+	var file string
 
 	// create issue data
 	var summary string
@@ -41,7 +48,7 @@ func main() {
 	var issueLabels []string
 	var assignee string
 	var reporter string
-	var priorityName string
+	var priorityName string // normal: id=3
 
 	for a := 0; a < len(argsWithoutProg); a++ {
 		if argsWithoutProg[a] == "--type" {
@@ -61,6 +68,18 @@ func main() {
 		if argsWithoutProg[a] == "--title" {
 			pageTitle = argsWithoutProg[a+1]
 		}
+		if argsWithoutProg[a] == "--parent" {
+			parent = argsWithoutProg[a+1]
+		}
+		if argsWithoutProg[a] == "--body" {
+			body = argsWithoutProg[a+1]
+		}
+		if argsWithoutProg[a] == "--file" {
+			file = argsWithoutProg[a+1]
+		}
+		if argsWithoutProg[a] == "--labels" {
+			labels = argsWithoutProg[a+1]
+		}
 
 		// jira
 		if argsWithoutProg[a] == "--projKey" {
@@ -72,6 +91,9 @@ func main() {
 		if argsWithoutProg[a] == "--priority" {
 			priorityName = argsWithoutProg[a+1]
 		}
+		if argsWithoutProg[a] == "--descr" {
+			description = argsWithoutProg[a+1]
+		}
 	}
 
 	tokService := token.TokenService{}
@@ -82,9 +104,16 @@ func main() {
 	// Confluence instance
 	switch instanceType {
 	case "confluence":
+		ps := serv.PageService{}
+		ss := serv.SpaceService{}
+		ls := serv.LabelService{}
+		// find space's home page
+		if pageTitle == "@home" {
+			space := ss.GetSpace(url, anmaToken, spaceKey)
+			pageTitle = space.Homepage.Title
+		}
 		switch action {
 		case "getPage":
-			ps := serv.PageService{}
 			if pageId != "" {
 				page := ps.GetPage(url, anmaToken, pageId)
 				printPage(page)
@@ -93,9 +122,14 @@ func main() {
 				printPage(page)
 			}
 		case "getSpace":
-			ss := serv.SpaceService{}
 			space := ss.GetSpace(url, anmaToken, spaceKey)
 			fmt.Println(space)
+		case "createPage":
+			created := ps.CreateContent(url, anmaToken, "page", spaceKey, parent, pageTitle, body)
+			if labels != "" {
+				ls.AddLabels(url, anmaToken, created.Id, strings.Split(labels, ","))
+			}
+			printPage(created)
 		}
 
 	// Jira instance
@@ -126,6 +160,7 @@ func main() {
 		}
 
 	}
+	log.Println(file) // todo
 
 	// == END
 	fmt.Printf("Operations took '%f' secs", time.Now().Sub(start).Seconds())

@@ -159,7 +159,7 @@ func (s PageService) CreateContent(url string, tok string, ctype string, key str
 		Ancestors: ancts,
 	}
 	mrsCtn, err2 := json.Marshal(cntb)
-	fmt.Println(string(mrsCtn))
+	//fmt.Println(string(mrsCtn))
 	if err2 != nil {
 		log.Panicln(err2)
 	}
@@ -180,7 +180,7 @@ func (s PageService) CreateContent(url string, tok string, ctype string, key str
 	var content models.Content
 	bts, err := io.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &content)
-	fmt.Println(string(bts))
+	//fmt.Println(string(bts))
 	return content
 }
 
