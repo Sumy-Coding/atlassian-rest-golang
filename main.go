@@ -112,9 +112,9 @@ func main() {
 		ls := serv.LabelService{}
 		as := serv.AttachService{}
 		// find space's home page
-		if pageTitle == "@home" {
+		if parent == "@home" {
 			space := ss.GetSpace(url, anmaToken, spaceKey)
-			pageTitle = space.Homepage.Title
+			parent = space.Homepage.Id
 		}
 		switch action {
 		case "getPage":

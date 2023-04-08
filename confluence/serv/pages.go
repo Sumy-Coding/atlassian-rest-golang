@@ -19,8 +19,7 @@ import (
 	"sync"
 )
 
-type PageService struct {
-}
+type PageService struct{}
 
 var (
 	labServ = LabelService{}
@@ -44,7 +43,6 @@ func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
 	return nil
 }
 
-// api: /rest/v2
 func (ps PageService) GetPageTitleKey(url string, tok string, space string, title string) models.Content {
 	client := myClient()
 	expand := "expand=space,body.storage,history,version"
@@ -135,7 +133,6 @@ func (s PageService) GetDescendants(url string, tok string, id string, lim int) 
 	err = json.Unmarshal(bts, &cnArray)
 
 	return cnArray
-
 }
 
 func (s PageService) CreateContent(url string, tok string, ctype string, key string, parent string,
