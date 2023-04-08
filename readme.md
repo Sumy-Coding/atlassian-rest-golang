@@ -12,15 +12,16 @@ Download execution file from Releases https://github.com/AndriiMaliuta/atlassian
 
 ### Confluence
 ```bash
-./atlas --type confluence --action getPage --id "854950177"
-./atlas --type confluence --action getPage --space "TEST" --title "Page A"
-./atlas --type confluence --action getSpace --space "TEST"
+atlas --type confluence --action getPage --id "854950177"
+atlas --type confluence --action getPage --space "TEST" --title "Page A"
+atlas --type confluence --action getSpace --space "TEST"
 ```
 
 ### Jira
 ```bash
-./atlas --type jira --action getIssue --key "AAA-3"
-./atlas --type jira --action createIssue --summary "" --description "" --project ""
+atlas --type jira --action getIssue --key "AAA-3"
+atlas --type jira --action createIssue --summary "" --description "" --project ""
+atlas --type jira --action getProject --key "AD"
 ```
 
 

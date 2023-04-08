@@ -11,15 +11,14 @@ import (
 	"net/http"
 )
 
-type LabelService struct {
-}
+type LabelService struct{}
 
 func (l LabelService) GetPageLabels(url string, tok string, pid string) models.LabelArray {
 	log.Printf("Getting %s page labels", pid)
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/label", url, pid)
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	req.Header.Add("Authorization", "Basic "+tok)
-	client := myClient(reqUrl, tok)
+	client := myClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
@@ -46,11 +45,9 @@ func (l LabelService) AddLabels(url string, tok string, pid string, labels []str
 
 	lJson, err := json.Marshal(lbls)
 	req, err := http.NewRequest("POST", reqUrl, bytes.NewReader(lJson))
-	//req.SetBasicAuth("admin", "admin")
-	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)
 	req.Header.Add("Content-Type", "application/json")
-	client := myClient(reqUrl, tok)
+	client := myClient()
 	resp, err := client.Do(req)
 
 	if err != nil {
@@ -78,7 +75,6 @@ func (l LabelService) AddLabels(url string, tok string, pid string, labels []str
 //	err = json.Unmarshal(bts, &label)
 //
 //	return label
-//
 //}
 
 //DELETE /rest/api/content/{id}/label/{label}
@@ -87,10 +83,8 @@ func (l LabelService) DeleteLabel(url string, tok string, pid string, lid string
 
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/label/%s", url, pid, lid)
 	req, err := http.NewRequest("DELETE", reqUrl, nil)
-	//req.SetBasicAuth("admin", "admin")
-	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)
-	client := myClient(reqUrl, tok)
+	client := myClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
@@ -101,5 +95,4 @@ func (l LabelService) DeleteLabel(url string, tok string, pid string, lid string
 	err = json.Unmarshal(bts, &rStr)
 
 	return rStr
-
 }

@@ -46,7 +46,7 @@ func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
 
 // api: /rest/v2
 func (ps PageService) GetPageTitleKey(url string, tok string, space string, title string) models.Content {
-	client := myClient(url, tok)
+	client := myClient()
 	expand := "expand=space,body.storage,history,version"
 
 	reqUrl := fmt.Sprintf("%s/rest/api/content?spaceKey=%s&title=%s&%s", url, space, title, expand)
@@ -67,7 +67,7 @@ func (ps PageService) GetPageTitleKey(url string, tok string, space string, titl
 }
 
 func (ps PageService) GetPage(url string, tok string, id string) models.Content {
-	client := myClient(url, tok)
+	client := myClient()
 	expand := "expand=space,body.storage,history,version"
 
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s?%s", url, id, expand)
@@ -101,10 +101,10 @@ func (s PageService) GetChildren(url string, tok string, id string) models.Conte
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)
-	client := myClient(reqUrl, tok)
+	client := myClient()
 	resp, err := client.Do(req)
 	fmt.Printf("Response code for GETPAGE is %d", resp.StatusCode)
-	defer resp.Body.Close() // todo -close body
+	defer resp.Body.Close()
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -123,7 +123,7 @@ func (s PageService) GetDescendants(url string, tok string, id string, lim int) 
 	reqUrl := fmt.Sprintf("%s/rest/api/content/search?cql=ancestor=%s&limit=%d", url, id, lim)
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	req.Header.Add("Authorization", "Basic "+tok)
-	client := myClient(reqUrl, tok)
+	client := myClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
@@ -234,7 +234,7 @@ func (s PageService) GetSpacePages(url string, tok string, key string) models.Co
 	reqUrl := fmt.Sprintf("%s/rest/api/content?type=page&spaceKey=%s&%s&limit=300", url, key, expand)
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	req.Header.Add("Authorization", "Basic "+tok)
-	client := myClient(reqUrl, tok)
+	client := myClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
@@ -252,7 +252,7 @@ func (p PageService) GetSpacePagesByLabel(url string, tok string, key string, lb
 	reqUrl := fmt.Sprintf("%s/rest/api/search?cql=space=\"%s\"+and+label+%3D+\"%s\"", url, key, lb)
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	req.Header.Add("Authorization", "Basic "+tok)
-	client := myClient(reqUrl, tok)
+	client := myClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
@@ -270,7 +270,7 @@ func (s PageService) GetSpaceBlogs(url string, tok string, key string) models.Co
 	reqUrl := fmt.Sprintf("%s/rest/api/content?type=blogpost&spaceKey=%s&limit=300", url, key) //limit=300
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	req.Header.Add("Authorization", "Basic "+tok)
-	client := myClient(reqUrl, tok)
+	client := myClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
@@ -289,7 +289,7 @@ func (s PageService) DeletePageLabels(url string, tok string, id string, labels 
 		reqUrl := fmt.Sprintf("%s/rest/api/content/%d/label/%s", url, id, lab) //limit=300
 		req, err := http.NewRequest("DELETE", reqUrl, nil)
 		req.Header.Add("Authorization", "Basic "+tok)
-		client := myClient(reqUrl, tok)
+		client := myClient()
 		resp, err := client.Do(req)
 		if err != nil {
 			log.Panicln(err)
@@ -305,7 +305,7 @@ func (s PageService) DeletePage(url string, tok string, id string) models.Conten
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%d", url, id) //limit=300
 	req, err := http.NewRequest("DELETE", reqUrl, nil)
 	req.Header.Add("Authorization", "Basic "+tok)
-	client := myClient(reqUrl, tok)
+	client := myClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
@@ -707,17 +707,8 @@ func (p PageService) AddComment(url string, tok string, cid string, pid string) 
 
 }
 
-//func (p PageService) CopyComment(url string, tok string, cid string, pid string) models.Content {
-//	log.Printf("Copying %s comment to %s page", cid, pid)
-//
-//	cmm := p.GetComment(url, tok, cid)
-//	page := p.GetPage(url, tok, pid)
-//
-//}
-
-func myClient(url string, token string) *http.Client {
-	client := &http.Client{
+func myClient() *http.Client {
+	return &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
-	return client
 }

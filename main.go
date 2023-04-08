@@ -110,6 +110,7 @@ func main() {
 		ps := serv.PageService{}
 		ss := serv.SpaceService{}
 		ls := serv.LabelService{}
+		as := serv.AttachService{}
 		// find space's home page
 		if pageTitle == "@home" {
 			space := ss.GetSpace(url, anmaToken, spaceKey)
@@ -133,6 +134,9 @@ func main() {
 				ls.AddLabels(url, anmaToken, created.Id, strings.Split(labels, ","))
 			}
 			printPage(created)
+		case "addAttach":
+			added := as.AddAttachment(url, anmaToken, pageId, file)
+			log.Println(added)
 		case "addLabel":
 			page := ps.GetPage(url, anmaToken, pageId)
 			if labels != "" {
