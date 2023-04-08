@@ -122,8 +122,6 @@ func (s PageService) GetDescendants(url string, tok string, id string, lim int) 
 
 	reqUrl := fmt.Sprintf("%s/rest/api/content/search?cql=ancestor=%s&limit=%d", url, id, lim)
 	req, err := http.NewRequest("GET", reqUrl, nil)
-	//req.SetBasicAuth("admin", "admin")
-	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)
 	client := myClient(reqUrl, tok)
 	resp, err := client.Do(req)
@@ -204,8 +202,6 @@ func (s PageService) CreateContentAsync(wg *sync.WaitGroup, url string, tok stri
 				Representation: "storage", Value: bd},
 		},
 		Ancestors: ancts,
-		//req.SetBasicAuth("admin", "admin")
-		//resp, err := http.Get(reqUrl)
 	}
 	mrsCtn, err2 := json.Marshal(cntb)
 	fmt.Println(string(mrsCtn))
@@ -237,8 +233,6 @@ func (s PageService) GetSpacePages(url string, tok string, key string) models.Co
 	expand := "expand=body.storage,history,version"
 	reqUrl := fmt.Sprintf("%s/rest/api/content?type=page&spaceKey=%s&%s&limit=300", url, key, expand)
 	req, err := http.NewRequest("GET", reqUrl, nil)
-	//req.SetBasicAuth("admin", "admin")
-	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)
 	client := myClient(reqUrl, tok)
 	resp, err := client.Do(req)
@@ -265,7 +259,7 @@ func (p PageService) GetSpacePagesByLabel(url string, tok string, key string, lb
 	}
 	defer resp.Body.Close()
 	var cnArray models.ContentArray
-	bts, err := ioutil.ReadAll(resp.Body)
+	bts, err := io.ReadAll(resp.Body)
 	err = json.Unmarshal(bts, &cnArray)
 
 	return cnArray
@@ -275,8 +269,6 @@ func (s PageService) GetSpaceBlogs(url string, tok string, key string) models.Co
 
 	reqUrl := fmt.Sprintf("%s/rest/api/content?type=blogpost&spaceKey=%s&limit=300", url, key) //limit=300
 	req, err := http.NewRequest("GET", reqUrl, nil)
-	//req.SetBasicAuth("admin", "admin")
-	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)
 	client := myClient(reqUrl, tok)
 	resp, err := client.Do(req)
@@ -304,8 +296,6 @@ func (s PageService) DeletePageLabels(url string, tok string, id string, labels 
 		}
 		defer resp.Body.Close()
 		fmt.Println(resp)
-		//bts, err := ioutil.ReadAll(resp.Body)
-		//err = json.Unmarshal(bytes, &cnArray)
 	}
 
 	return "labels deleted "
@@ -476,8 +466,6 @@ func (s PageService) UpdatePage(url string, tok string, pid string, find string,
 		log.Panicln(err2)
 	}
 	req, err := http.NewRequest("PUT", reqUrl, bytes.NewReader(pageBytes))
-	//req.SetBasicAuth("admin", "admin")
-	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)
 	req.Header.Add("Content-Type", "application/json")
 	resp, err := client.Do(req)
@@ -504,8 +492,6 @@ func (s PageService) GetPageAttaches(url string, tok string, pid string) models.
 	expand := "expand=body.storage,history,version"
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/child/attachment?limit=100&%s", url, pid, expand) // limit=100
 	req, err := http.NewRequest("GET", reqUrl, nil)
-	//req.SetBasicAuth("admin", "admin")
-	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)
 	resp, err := client.Do(req)
 	if err != nil {
@@ -531,8 +517,6 @@ func (s PageService) GetAttach(url string, tok string, aid string) models.Conten
 	expand := "expand=body.storage,history,version"
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s?%s", url, aid, expand)
 	req, err := http.NewRequest("GET", reqUrl, nil)
-	//req.SetBasicAuth("admin", "admin")
-	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)
 	resp, err := client.Do(req)
 	if err != nil {
@@ -665,8 +649,6 @@ func (s PageService) GetComment(url string, tok string, cid string) models.Conte
 	expand := "expand=body.storage,history,version"
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s?%s", url, cid, expand)
 	req, err := http.NewRequest("GET", reqUrl, nil)
-	//req.SetBasicAuth("admin", "admin")
-	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)
 	resp, err := client.Do(req)
 	if err != nil {
@@ -708,8 +690,6 @@ func (p PageService) AddComment(url string, tok string, cid string, pid string) 
 		log.Panicln(err2)
 	}
 	req, err := http.NewRequest("POST", reqUrl, bytes.NewReader(mrsCtn))
-	//req.SetBasicAuth("admin", "admin")
-	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)
 	req.Header.Add("Content-Type", "application/json")
 	resp, err := client.Do(req)

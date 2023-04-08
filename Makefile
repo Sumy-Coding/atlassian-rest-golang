@@ -6,3 +6,9 @@ protoo:
         --go-grpc_out=. --go-grpc_opt=paths=source_relative \
         ./proto/content.proto
 #        /home/malandr/GolandProjects/confluence-rest-golang/proto/content.proto
+build:
+	env GOOS=target-OS GOARCH=target-architecture go build package-import-path
+	env GOOS=linux GOARCH=amd64 go build -o atlas
+	env GOOS=windows GOARCH=amd64 go build -o atlas
+build-simple:
+	go build -o atlas

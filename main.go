@@ -82,7 +82,7 @@ func main() {
 		}
 
 		// jira
-		if argsWithoutProg[a] == "--projKey" {
+		if argsWithoutProg[a] == "--key" {
 			projKey = argsWithoutProg[a+1]
 		}
 		if argsWithoutProg[a] == "--summary" {
@@ -98,6 +98,9 @@ func main() {
 
 	tokService := token.TokenService{}
 	url := os.Getenv("ATLAS_URL")
+	if instanceType == "confluence" {
+		url += "/wiki"
+	}
 	pass := os.Getenv("ATLAS_PASS")
 	anmaToken := tokService.GetToken(os.Getenv("ATLAS_USER"), pass)
 
@@ -169,7 +172,7 @@ func main() {
 	log.Println(file) // todo
 
 	// == END
-	fmt.Printf("Operations took '%f' secs", time.Now().Sub(start).Seconds())
+	fmt.Printf("Operations took '%f' sec", time.Now().Sub(start).Seconds())
 }
 
 func printPage(page models.Content) {
