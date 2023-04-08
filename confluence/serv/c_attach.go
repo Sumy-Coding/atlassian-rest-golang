@@ -10,7 +10,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"strings"
 )
 
 type AttachService struct{}
@@ -71,26 +70,45 @@ func (as AttachService) AddAttachment(url string, tok string, pid string, attach
 
 }
 
-func createForm(form map[string]string) (string, io.Reader, error) {
-	body := new(bytes.Buffer)
-	mp := multipart.NewWriter(body)
-	defer mp.Close()
-	for key, val := range form {
-		if strings.HasPrefix(val, "@") {
-			val = val[1:]
-			file, err := os.Open(val)
-			if err != nil {
-				return "", nil, err
-			}
-			defer file.Close()
-			part, err := mp.CreateFormFile(key, val)
-			if err != nil {
-				return "", nil, err
-			}
-			io.Copy(part, file)
-		} else {
-			mp.WriteField(key, val)
-		}
+func (as AttachService) DownloadAttachmentById(url string, token string, aid string) models.Attachment {
+	// todo
+	return models.Attachment{}
+}
+
+func (as AttachService) DownloadAttachments(url string, token string, pid string) []models.Attachment {
+	log.Printf("Downloading page '%s' attachments", pid)
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/child/attachment", url, pid)
+
+	req, err := http.NewRequest(http.MethodGet, reqUrl, nil)
+	req.Header.Add("Authorization", "Basic "+token)
+	req.Header.Add("Accept", "application/json")
+
+	client := myClient()
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Error when performing GET request: %s", err)
 	}
-	return mp.FormDataContentType(), body, nil
+	defer resp.Body.Close()
+
+	var attaches models.AttachmentsResult
+	bts, err := io.ReadAll(resp.Body)
+	err = json.Unmarshal(bts, &attaches)
+
+	downloaded := make([]models.Attachment, 0)
+
+	for _, att := range attaches.Results {
+		dLink := fmt.Sprintf("%s%s", url, att.Links.Download)
+		response, err := client.Get(dLink)
+		if err != nil {
+			log.Printf("Error when getting attachment via GET HTTP request. Err: %s", err)
+		}
+		//defer response.Body.Close()
+
+		var attach models.Attachment
+		bts, err := io.ReadAll(response.Body)
+		err = json.Unmarshal(bts, &attach)
+		downloaded = append(downloaded, attach)
+	}
+
+	return downloaded
 }

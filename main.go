@@ -137,6 +137,9 @@ func main() {
 		case "addAttach":
 			added := as.AddAttachment(url, anmaToken, pageId, file)
 			log.Println(added)
+		case "downloadAttachments":
+			downloaded := as.DownloadAttachments(url, anmaToken, pageId)
+			log.Println(downloaded)
 		case "addLabel":
 			page := ps.GetPage(url, anmaToken, pageId)
 			if labels != "" {
