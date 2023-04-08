@@ -103,10 +103,9 @@ func (as AttachService) DownloadAttachments(url string, token string, pid string
 			log.Printf("Error when getting attachment via GET HTTP request. Err: %s", err)
 		}
 		//defer response.Body.Close()
-
 		var attach models.Attachment
 		bts, err := io.ReadAll(response.Body)
-		err = json.Unmarshal(bts, &attach)
+		err = os.WriteFile(att.Title, bts, 0644)
 		downloaded = append(downloaded, attach)
 	}
 
