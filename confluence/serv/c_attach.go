@@ -67,7 +67,6 @@ func (as AttachService) AddAttachment(url string, tok string, pid string, attach
 	err = json.Unmarshal(bts, &added)
 
 	return added
-
 }
 
 func (as AttachService) DownloadAttachmentById(url string, token string, aid string) models.Attachment {
@@ -80,7 +79,7 @@ func (as AttachService) DownloadAttachments(url string, token string, pid string
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/child/attachment", url, pid)
 
 	req, err := http.NewRequest(http.MethodGet, reqUrl, nil)
-	req.Header.Add("Authorization", "Basic "+token)
+	req.Header.Add("Authorization", fmt.Sprintf("Basic %s", token))
 	req.Header.Add("Accept", "application/json")
 
 	client := myClient()

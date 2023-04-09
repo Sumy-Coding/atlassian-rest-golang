@@ -15,11 +15,6 @@ func TestDownloadAttachment(t *testing.T) {
 		log.Printf("Error getting file: %s", err)
 	}
 
-	//file, err := os.ReadFile(url)
-	//if err != nil {
-	//	return
-	//}
-
 	defer resp.Body.Close()
 	data, err := io.ReadAll(resp.Body)
 	log.Println(string(data))
