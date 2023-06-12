@@ -43,7 +43,7 @@ func (is IssueService) GetIssue(url string, token string, key string) Issue {
 
 func (is IssueService) CreateIssue(url string, token string, data *CreateIssue) CreatedIssue {
 	fmt.Println(data)
-	log.Printf(">> Creating issue in project %s", data.Fields.Project.Id)
+	log.Printf(">> \u001B[32m Creating \u001B[0m issue in project \u001b[33m %s \u001B[0m", data.Fields.Project.Id)
 	reqUrl := fmt.Sprintf("%s/rest/api/2/issue/", url)
 	client := GetClient()
 	jsonData, err := json.Marshal(data)
@@ -60,11 +60,17 @@ func (is IssueService) CreateIssue(url string, token string, data *CreateIssue) 
 
 	response, err := client.Do(req)
 	if err != nil {
-		log.Println(err)
+		log.Printf("Error when performinh POST request to create issue. %v", err)
 	}
-	defer response.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(response.Body)
 
 	bData, err := io.ReadAll(response.Body)
+
 	if err != nil {
 		log.Println(err)
 	}

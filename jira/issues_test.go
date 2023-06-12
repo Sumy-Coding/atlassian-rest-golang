@@ -19,7 +19,7 @@ func TestIssuesService(t *testing.T) {
 	fmt.Println(iss)
 }
 
-func TestCreateIssues(t *testing.T) {
+func TestCreateIssue(t *testing.T) {
 	tokService := token.TokenService{}
 	url := os.Getenv("ATLAS_URL")
 	pass := os.Getenv("ATLAS_PASS")
@@ -32,11 +32,31 @@ func TestCreateIssues(t *testing.T) {
 			Issuetype:   CIIssuetype{Id: "10006"},
 			Assignee:    Assignee{Name: "admin"},
 			Reporter:    Reporter{Name: "admin"},
-			Priority:    Priority{Name: "Normal"},
 			Labels:      []string{"aaa"},
 			Description: "description",
-			Duedate:     "",
 		}})
 
 	fmt.Println(created)
+}
+
+func TestCreateIssues(t *testing.T) {
+	tokService := token.TokenService{}
+	url := os.Getenv("ATLAS_URL")
+	pass := os.Getenv("ATLAS_PASS")
+	aToken := tokService.GetToken(os.Getenv("ATLAS_USER"), pass)
+	is := IssueService{}
+	for i := 0; i < 20; i++ {
+		created := is.CreateIssue(url, aToken, &CreateIssue{
+			Fields: CreateFields{
+				Project:     CreateIssueProject{Id: "10000"},
+				Summary:     fmt.Sprintf("summary %d", i),
+				Issuetype:   CIIssuetype{Id: "10006"},
+				Assignee:    Assignee{Name: "admin"},
+				Reporter:    Reporter{Name: "admin"},
+				Labels:      []string{"aaa"},
+				Description: "description",
+			}})
+
+		fmt.Println(created)
+	}
 }

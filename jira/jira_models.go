@@ -265,15 +265,14 @@ type Priority struct {
 }
 
 type CreateFields struct {
-	Project     CreateIssueProject `json:"project"`
-	Summary     string             `json:"summary"`
-	Issuetype   CIIssuetype        `json:"issuetype"`
-	Assignee    Assignee           `json:"assignee"`
-	Reporter    Reporter           `json:"reporter"`
-	Priority    Priority           `json:"priority"`
-	Labels      []string           `json:"labels"`
-	Description string             `json:"description"`
-	Duedate     string             `json:"duedate"`
+	Project   CreateIssueProject `json:"project"`
+	Summary   string             `json:"summary"`
+	Issuetype CIIssuetype        `json:"issuetype"`
+	Assignee  Assignee           `json:"assignee"`
+	Reporter  Reporter           `json:"reporter"`
+	//Priority    Priority           `json:"priority"`
+	Labels      []string `json:"labels"`
+	Description string   `json:"description"`
 }
 
 type CreateIssue struct {

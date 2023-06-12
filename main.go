@@ -44,11 +44,11 @@ func main() {
 	var summary string
 	var description string
 	var issTypeId string // 10006
-	var dueDate string   // "2023-04-10"
+	//var dueDate string   // "2023-04-10"
 	var issueLabels []string
 	var assignee string
 	var reporter string
-	var priorityName string // normal: id=3
+	//var priorityName string // normal: id=3
 
 	for a := 0; a < len(argsWithoutProg); a++ {
 		if argsWithoutProg[a] == "--type" {
@@ -88,13 +88,18 @@ func main() {
 		if argsWithoutProg[a] == "--summary" {
 			summary = argsWithoutProg[a+1]
 		}
-		if argsWithoutProg[a] == "--priority" {
-			priorityName = argsWithoutProg[a+1]
-		}
-		if argsWithoutProg[a] == "--descr" {
+		//if argsWithoutProg[a] == "--priority" {
+		//	priorityName = argsWithoutProg[a+1]
+		//}
+		if argsWithoutProg[a] == "--desc" {
 			description = argsWithoutProg[a+1]
 		}
+		if argsWithoutProg[a] == "project" {
+			projId = argsWithoutProg[a+1]
+		}
 	}
+
+	log.Printf(">> Args are: %v", argsWithoutProg)
 
 	tokService := token.TokenService{}
 	url := os.Getenv("ATLAS_URL")
@@ -166,10 +171,8 @@ func main() {
 				Issuetype:   jira.CIIssuetype{Id: issTypeId},
 				Assignee:    jira.Assignee{Name: assignee},
 				Reporter:    jira.Reporter{Name: reporter},
-				Priority:    jira.Priority{Name: priorityName},
 				Labels:      issueLabels,
 				Description: description,
-				Duedate:     dueDate,
 			}})
 			fmt.Println(created)
 
