@@ -160,8 +160,8 @@ func main() {
 			proj := ps.GetProject(url, anmaToken, projKey)
 			fmt.Println(proj)
 		case "createIssue":
-			created := is.CreateIssue(url, anmaToken, jira.CreateIssue{Fields: jira.CreateFields{
-				Project:     jira.CreateIssueProject{Id: projId}, //10000
+			created := is.CreateIssue(url, anmaToken, &jira.CreateIssue{Fields: jira.CreateFields{
+				Project:     jira.CreateIssueProject{Id: projId},
 				Summary:     summary,
 				Issuetype:   jira.CIIssuetype{Id: issTypeId},
 				Assignee:    jira.Assignee{Name: assignee},

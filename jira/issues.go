@@ -41,12 +41,14 @@ func (is IssueService) GetIssue(url string, token string, key string) Issue {
 	return issue
 }
 
-func (is IssueService) CreateIssue(url string, token string, data CreateIssue) CreatedIssue {
+func (is IssueService) CreateIssue(url string, token string, data *CreateIssue) CreatedIssue {
+	fmt.Println(data)
+	log.Printf(">> Creating issue in project %s", data.Fields.Project.Id)
 	reqUrl := fmt.Sprintf("%s/rest/api/2/issue/", url)
 	client := GetClient()
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		log.Println(err)
+		log.Printf("Error when creating issue for host %s. %v", url, err)
 	}
 	req, err := http.NewRequest(http.MethodPost, reqUrl, bytes.NewReader(jsonData))
 
