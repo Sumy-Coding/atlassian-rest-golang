@@ -10,8 +10,7 @@ import (
 	"net/http"
 )
 
-type SpaceService struct {
-}
+type SpaceService struct{}
 
 func (s SpaceService) GetSpace(url string, tok string, key string) models.Space {
 	var client *http.Client = &http.Client{
@@ -41,7 +40,6 @@ func (s SpaceService) GetSpace(url string, tok string, key string) models.Space 
 }
 
 func (s SpaceService) CreateSpace(url string, tok string, key string, name string) models.Space {
-
 	log.Printf("Creating space %s", name)
 
 	client := &http.Client{
