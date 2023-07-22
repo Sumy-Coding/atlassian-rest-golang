@@ -86,7 +86,6 @@ func (ps PageService) GetPage(url string, tok string, id string) models.Content 
 }
 
 func (s PageService) GetChildren(url string, tok string, id string) models.ContentArray {
-
 	expand := "expand=space,body.storage,history,version"
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/child/page?%s", url, id, expand)
 	req, err := http.NewRequest("GET", reqUrl, nil)
@@ -115,7 +114,6 @@ func (s PageService) GetChildren(url string, tok string, id string) models.Conte
 }
 
 func (s PageService) GetDescendants(url string, tok string, id string, lim int) models.ContentArray {
-
 	//expand := "?expand=body.storage,history,version"
 
 	reqUrl := fmt.Sprintf("%s/rest/api/content/search?cql=ancestor=%s&limit=%d", url, id, lim)
@@ -135,14 +133,14 @@ func (s PageService) GetDescendants(url string, tok string, id string, lim int) 
 	return cnArray
 }
 
-func (s PageService) CreateContent(url string, tok string, ctype string, key string, parent string,
+func (ps PageService) CreateContent(url string, tok string, ctype string, key string, parent string,
 	title string, bd string) models.Content {
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
 	reqUrl := fmt.Sprintf("%s/rest/api/content", url)
-	ancts := []models.Ancestor{{Id: parent}} // parent
-	cntb := models.CreatePage{
+	ancestors := []models.Ancestor{{Id: parent}} // parent
+	contentBody := models.CreatePage{
 		Type:  ctype,
 		Title: title,
 		CreatePageSpace: models.CreatePageSpace{
@@ -151,9 +149,9 @@ func (s PageService) CreateContent(url string, tok string, ctype string, key str
 			Storage: models.Storage{
 				Representation: "storage", Value: bd},
 		},
-		Ancestors: ancts,
+		Ancestors: ancestors,
 	}
-	mrsCtn, err2 := json.Marshal(cntb)
+	mrsCtn, err2 := json.Marshal(contentBody)
 	//fmt.Println(string(mrsCtn))
 	if err2 != nil {
 		log.Panicln(err2)
@@ -179,9 +177,8 @@ func (s PageService) CreateContent(url string, tok string, ctype string, key str
 	return content
 }
 
-// createPage(CONF_URL, TOKEN, space, parentId, title, body)
-func (s PageService) CreateContentAsync(wg *sync.WaitGroup, url string, tok string, ctype string, key string, parent string,
-	title string, bd string) models.Content {
+func (s PageService) CreateContentAsync(wg *sync.WaitGroup, url string, tok string,
+	ctype string, key string, parent string, title string, bd string) models.Content {
 	//wg.Add(1)
 	defer wg.Done()
 	client := &http.Client{
@@ -220,8 +217,8 @@ func (s PageService) CreateContentAsync(wg *sync.WaitGroup, url string, tok stri
 	return content
 }
 
-func (s PageService) PageContains(url string, tok string, id string, find string) bool {
-	body := s.GetPage(url, tok, id).Body.Storage.Value
+func (ps PageService) PageContains(url string, tok string, id string, find string) bool {
+	body := ps.GetPage(url, tok, id).Body.Storage.Value
 	return strings.Contains(body, find)
 }
 
@@ -244,9 +241,9 @@ func (s PageService) GetSpacePages(url string, tok string, key string) models.Co
 	return cnArray
 
 }
-func (p PageService) GetSpacePagesByLabel(url string, tok string, key string, lb string) models.ContentArray { // todo
+func (ps PageService) GetSpacePagesByLabel(url string, tok string, key string, lb string) models.ContentArray { // todo
 	//?cql=space+%3D+"DEV"+and+label+%3D+"aa"
-	reqUrl := fmt.Sprintf("%s/rest/api/search?cql=space=\"%s\"+and+label+%3D+\"%s\"", url, key, lb)
+	reqUrl := fmt.Sprintf("%s/rest/api/search?cql=space=\"%s\"+and+label=\"%s\"", url, key, lb)
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	req.Header.Add("Authorization", "Basic "+tok)
 	client := myClient()
@@ -263,7 +260,6 @@ func (p PageService) GetSpacePagesByLabel(url string, tok string, key string, lb
 }
 
 func (s PageService) GetSpaceBlogs(url string, tok string, key string) models.ContentArray {
-
 	reqUrl := fmt.Sprintf("%s/rest/api/content?type=blogpost&spaceKey=%s&limit=300", url, key) //limit=300
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	req.Header.Add("Authorization", "Basic "+tok)
@@ -282,24 +278,26 @@ func (s PageService) GetSpaceBlogs(url string, tok string, key string) models.Co
 }
 
 func (s PageService) DeletePageLabels(url string, tok string, id string, labels []string) string {
-	for _, lab := range labels {
-		reqUrl := fmt.Sprintf("%s/rest/api/content/%d/label/%s", url, id, lab) //limit=300
-		req, err := http.NewRequest("DELETE", reqUrl, nil)
-		req.Header.Add("Authorization", "Basic "+tok)
-		client := myClient()
-		resp, err := client.Do(req)
-		if err != nil {
-			log.Panicln(err)
+	if len(labels) > 0 {
+		for _, lab := range labels {
+			reqUrl := fmt.Sprintf("%s/rest/api/content/%s/label/%s", url, id, lab) //limit=300
+			req, err := http.NewRequest("DELETE", reqUrl, nil)
+			req.Header.Add("Authorization", "Basic "+tok)
+			client := myClient()
+			resp, err := client.Do(req)
+			if err != nil {
+				log.Panicln(err)
+			}
+			defer resp.Body.Close()
+			fmt.Println(resp)
 		}
-		defer resp.Body.Close()
-		fmt.Println(resp)
+		return "labels deleted "
 	}
-
-	return "labels deleted "
+	return "no labels provided"
 }
 
 func (s PageService) DeletePage(url string, tok string, id string) models.Content {
-	reqUrl := fmt.Sprintf("%s/rest/api/content/%d", url, id) //limit=300
+	reqUrl := fmt.Sprintf("%s/rest/api/content/%s", url, id) //limit=300
 	req, err := http.NewRequest("DELETE", reqUrl, nil)
 	req.Header.Add("Authorization", "Basic "+tok)
 	client := myClient()
@@ -314,17 +312,13 @@ func (s PageService) DeletePage(url string, tok string, id string) models.Conten
 	return cnt
 }
 
-// Scroll url "${CONF_URL}/plugins/servlet/scroll-office/api/templates?spaceKey=${spaceKey}"
 func (s PageService) ScrollTemplates(url string, tok string, key string) []string {
-
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
 
 	reqUrl := fmt.Sprintf("%s/plugins/servlet/scroll-office/api/templates?spaceKey=%s", url, key)
 	req, err := http.NewRequest("GET", reqUrl, nil)
-	//req.SetBasicAuth("admin", "admin")
-	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)
 	resp, err := client.Do(req)
 	if err != nil {
@@ -336,7 +330,6 @@ func (s PageService) ScrollTemplates(url string, tok string, key string) []strin
 	err = json.Unmarshal(bts, &tms)
 
 	return tms
-
 }
 
 func (s PageService) CopyPage(wg *sync.WaitGroup, url string, tok string, pid string, tid string,
