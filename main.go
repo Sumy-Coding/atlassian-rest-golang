@@ -4,7 +4,7 @@ import (
 	"atlas-rest-golang/confluence/models"
 	"atlas-rest-golang/confluence/serv"
 	"atlas-rest-golang/jira"
-	"atlas-rest-golang/srv"
+	token "atlas-rest-golang/srv"
 	"fmt"
 	"log"
 	"os"
@@ -99,7 +99,7 @@ func main() {
 		}
 	}
 
-	log.Printf(">> Args are: %v", argsWithoutProg)
+	log.Printf(">> \u001b[33m Args are:\u001B[0m %v", argsWithoutProg)
 
 	tokService := token.TokenService{}
 	url := os.Getenv("ATLAS_URL")
