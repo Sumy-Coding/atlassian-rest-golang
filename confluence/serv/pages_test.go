@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	host = "http://localhost:8230"
+	host = "http://localhost:8510"
 	user = "admin"
 	pass = "admin"
 )
@@ -25,7 +25,7 @@ func TestGetPages(t *testing.T) {
 	ps := PageService{}
 	tokService := token2.TokenService{}
 	token := tokService.GetToken(user, pass)
-	pages := ps.GetChildren(host, token, "98390")
+	pages := ps.GetChildren(host, token, "98388")
 	for _, page := range pages.Results {
 		log.Println(page)
 	}
@@ -43,10 +43,16 @@ func TestCreatePages(t *testing.T) {
 	ps := PageService{}
 	tokService := token2.TokenService{}
 	token := tokService.GetToken(user, pass)
-	rootId := "950294"
+	rootId := "98388"
 
 	for i := 0; i < 30; i++ {
-		createdPage := ps.CreateContent(host, token, "page", "test", rootId, fmt.Sprintf("Go test %d", i), "lorem ipsum...")
+		createdPage := ps.CreateContent(host,
+			token,
+			"page",
+			"test",
+			rootId,
+			fmt.Sprintf("Go test %d", i),
+			"lorem ipsum...")
 		log.Println(createdPage)
 	}
 }
