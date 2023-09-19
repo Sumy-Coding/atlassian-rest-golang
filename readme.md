@@ -9,6 +9,14 @@ The CLI app (or internal Go API) to interact with Confluence and Jira.
 ### Installation
 Download execution file from Releases https://github.com/AndriiMaliuta/atlassian-rest-golang/releases.
 
+add env args:
+
+```bash
+ATLAS_URL=
+ATLAS_USER=
+ATLAS_PASS=
+```
+
 ---
 ### Confluence
 ```bash
