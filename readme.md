@@ -12,10 +12,12 @@ Download execution file from Releases https://github.com/AndriiMaliuta/atlassian
 add env args:
 
 ```bash
-ATLAS_URL=
-ATLAS_USER=
-ATLAS_PASS=
+ATLAS_URL=https://xxx.atlassian.net/wiki;
+ATLAS_USER=quadr988@gmail.com;
+ATLAS_PASS=ATATT3xFfGF0EyuFVzvo312YfSgsL0BPBejJv0Bon4WCGyV5wv_WKpl5YBQogO13kxBULSModgh4ljEHGsl4YmBg5BzljIQA7mVaN4XunHhHpgk-yammiG1sNN5nsU4cXAsBhNykFkUoMFFralRtej65mcecYXxyqVwSolVqzIkqJ8hdeGd778U=A9C027D9
 ```
+
+
 
 ---
 ### Confluence
