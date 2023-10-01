@@ -103,9 +103,9 @@ func main() {
 
 	tokService := token.TokenService{}
 	url := os.Getenv("ATLAS_URL")
-	if instanceType == "confluence" {
-		url += "/wiki"
-	}
+	//if instanceType == "confluence" {
+	//	url += "/wiki"
+	//}
 	pass := os.Getenv("ATLAS_PASS")
 	anmaToken := tokService.GetToken(os.Getenv("ATLAS_USER"), pass)
 
