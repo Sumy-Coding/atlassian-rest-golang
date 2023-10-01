@@ -54,22 +54,25 @@ func TestCreatePage(t *testing.T) {
 }
 
 func TestCreatePageAsync(t *testing.T) {
+	rs := RandService{}
 	wg := sync.WaitGroup{}
 	host, user, pass := GetAuthData()
 	ps := PageService{}
 	tokService := token2.TokenService{}
 	token := tokService.GetToken(user, pass)
-	for i := 0; i < 10; i++ {
+	rootPage := "519407780"
+
+	for i := 1; i < 50; i++ {
+		wg.Add(1)
 		go func(wg *sync.WaitGroup, num int) {
-			wg.Add(1)
+			defer wg.Done()
 			createdPage := ps.CreateContent(
 				host, token, "page",
-				"TEST", "519276317", fmt.Sprintf("Go test %d", i), "lorem ipsum...")
-			wg.Done()
+				"TEST", rootPage, fmt.Sprintf("Go Root 3 test %d", num), rs.RandomString(30))
 			log.Println(createdPage)
 		}(&wg, i)
-		wg.Wait()
 	}
+	wg.Wait()
 }
 
 func TestCreatePages(t *testing.T) {
