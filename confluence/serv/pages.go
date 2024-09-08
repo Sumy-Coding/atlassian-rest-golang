@@ -54,7 +54,7 @@ func (ps PageService) GetPageTitleKey(url string, tok string, space string, titl
 	req.Header.Add("Authorization", "Basic "+tok)
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println(err)
+		log.Printf("Error performing request: %v", err)
 	}
 
 	var content models.Content
@@ -72,10 +72,12 @@ func (ps PageService) GetPage(url string, tok string, id string) models.Content 
 	log.Println("GET REQ URL is " + reqUrl)
 
 	req, err := http.NewRequest("GET", reqUrl, nil)
+
 	req.Header.Add("Authorization", "Basic "+tok)
+
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println(err)
+		log.Printf("Error performing request: %v", err)
 	}
 
 	var content models.Content
@@ -87,7 +89,9 @@ func (ps PageService) GetPage(url string, tok string, id string) models.Content 
 
 func (s PageService) GetChildren(url string, tok string, id string) models.ContentArray {
 	expand := "expand=space,body.storage,history,version"
+
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s/child/page?%s", url, id, expand)
+
 	req, err := http.NewRequest("GET", reqUrl, nil)
 	//defer func(Body io.ReadCloser) {
 	//	err := Body.Close()
@@ -98,9 +102,8 @@ func (s PageService) GetChildren(url string, tok string, id string) models.Conte
 	//req.SetBasicAuth("admin", "admin")
 	//resp, err := http.Get(reqUrl)
 	req.Header.Add("Authorization", "Basic "+tok)
-	client := myClient()
-	resp, err := client.Do(req)
-	fmt.Printf("Response code for GETPAGE is %d", resp.StatusCode)
+	resp, err := myClient().Do(req)
+	fmt.Printf("Response code for GET_PAGE is %d", resp.StatusCode)
 	defer resp.Body.Close()
 	if err != nil {
 		log.Panicln(err)
@@ -122,9 +125,16 @@ func (s PageService) GetDescendants(url string, tok string, id string, lim int) 
 	client := myClient()
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Panicln(err)
+		log.Panicf("Error performing request GET_DESCENDANTS: %v", err)
 	}
-	defer resp.Body.Close() // close request's body
+
+	// close request's body
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Panicf("Error closing the response body: %v", err)
+		}
+	}(resp.Body)
 
 	var cnArray models.ContentArray
 	bts, err := io.ReadAll(resp.Body)
@@ -154,11 +164,13 @@ func (ps PageService) CreateContent(url string, tok string, ctype string, key st
 	mrsCtn, err2 := json.Marshal(contentBody)
 	//fmt.Println(string(mrsCtn))
 	if err2 != nil {
-		log.Panicln(err2)
+		log.Panicf("Error marshalling the JSON from ContentBody: %v", err2)
 	}
 	req, err := http.NewRequest("POST", reqUrl, bytes.NewReader(mrsCtn))
+
 	req.Header.Add("Authorization", "Basic "+tok)
 	req.Header.Add("Content-Type", "application/json")
+
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
@@ -198,22 +210,28 @@ func (s PageService) CreateContentAsync(wg *sync.WaitGroup, url string, tok stri
 		Ancestors: ancts,
 	}
 	mrsCtn, err2 := json.Marshal(cntb)
-	fmt.Println(string(mrsCtn))
 	if err2 != nil {
 		log.Panicln(err2)
 	}
+	//fmt.Println(string(mrsCtn))
+
 	req, err := http.NewRequest("POST", reqUrl, bytes.NewReader(mrsCtn))
+
 	req.Header.Add("Authorization", "Basic "+tok)
 	req.Header.Add("Content-Type", "application/json")
+
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Panicln(err)
 	}
 	defer resp.Body.Close()
+
 	var content models.Content
+
 	bts, err := io.ReadAll(resp.Body)
+
 	err = json.Unmarshal(bts, &content)
-	fmt.Println(string(bts))
+
 	return content
 }
 
@@ -629,28 +647,73 @@ func (s PageService) CopyAttach(url string, tok string, tpid string, atId string
 
 }
 
-func (s PageService) GetComment(url string, tok string, cid string) models.Content {
+func (ps PageService) GetComment(url string, tok string, cid string) models.Content {
+	log.Printf("Getting comment %s", cid)
 
-	log.Printf("Getting %s page coment", cid)
 	client := &http.Client{
 		CheckRedirect: redirectPolicyFunc,
 	}
 
 	expand := "expand=body.storage,history,version"
+
 	reqUrl := fmt.Sprintf("%s/rest/api/content/%s?%s", url, cid, expand)
+
 	req, err := http.NewRequest("GET", reqUrl, nil)
+	if err != nil {
+		log.Panicf("Error creating GET request for comment: %v", err)
+	}
+
 	req.Header.Add("Authorization", "Basic "+tok)
+
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Panicln(err)
+		log.Panicf("Error perforing request: %v", err)
 	}
 	defer resp.Body.Close()
+
 	var content models.Content
-	bts, err := ioutil.ReadAll(resp.Body)
+
+	bts, err := io.ReadAll(resp.Body)
+
 	err = json.Unmarshal(bts, &content)
-	fmt.Println(string(bts))
 
 	return content
+}
+
+func (ps PageService) AddFooterCommentToPage(url string, token string, pageId string, body string) error {
+	log.Printf("Adding comment '%s' to page '%s'", body, pageId)
+
+	client := &http.Client{
+		CheckRedirect: redirectPolicyFunc,
+	}
+
+	reqUrl := fmt.Sprintf("%s/rest/api/content", url)
+	reqBody := fmt.Sprintf(`{
+	  "type": "comment",
+	  "status": "current",
+	  "container": {
+		"id": %s,
+		"type": "page"
+	  },
+	  "body": {
+		"storage": {
+		  "value": "%s",
+		  "representation": "storage"
+		}
+	  }
+	}`, pageId, body)
+
+	req, err := http.NewRequest("POST", reqUrl, bytes.NewReader([]byte(reqBody)))
+
+	req.Header.Add("Authorization", "Basic "+token)
+	req.Header.Add("Content-Type", "application/json")
+
+	_, err = client.Do(req)
+	if err != nil {
+		log.Panicf("Error performing ADD_COMMENT request: %v", err)
+	}
+
+	return nil
 }
 
 func (p PageService) AddComment(url string, tok string, cid string, pid string) models.Content {

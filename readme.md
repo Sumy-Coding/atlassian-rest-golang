@@ -9,18 +9,18 @@ The CLI app (or internal Go API) to interact with Confluence and Jira.
 ### Installation
 Download execution file from Releases https://github.com/AndriiMaliuta/atlassian-rest-golang/releases.
 
-add env args:
+Add environment variables:
 
 ```bash
 ATLAS_URL=https://xxx.atlassian.net/wiki;
-ATLAS_USER=quadr988@gmail.com;
-ATLAS_PASS=ATATT3xFfGF0EyuFVzvo312YfSgsL0BPBejJv0Bon4WCGyV5wv_WKpl5YBQogO13kxBULSModgh4ljEHGsl4YmBg5BzljIQA7mVaN4XunHhHpgk-yammiG1sNN5nsU4cXAsBhNykFkUoMFFralRtej65mcecYXxyqVwSolVqzIkqJ8hdeGd778U=A9C027D9
+ATLAS_USER=your_mail@mail.com;
+ATLAS_PASS=XXX
 ```
 
-
-
+## CLI examples
 ---
 ### Confluence
+
 ```bash
 atlas --type confluence --action getPage --id "854950177"
 atlas --type confluence --action getPage --space "TEST" --title "Page A"
@@ -32,13 +32,15 @@ atlas --type confluence --action addLabels --id "111" --labels "aa,bb"
 ```
 ---
 ### Jira
+
 ```bash
 atlas --type jira --action getIssue --key "AAA-3"
 atlas --type jira --action createIssue --summary "" --description "" --project ""
 atlas --type jira --action getProject --key "AD"
 ```
 ---
-## Internal API examples
+
+## Library API examples
 get services
 ```
 grpcurl -plaintext localhost:9093 list

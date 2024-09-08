@@ -50,6 +50,10 @@ func main() {
 	var reporter string
 	//var priorityName string // normal: id=3
 
+	if len(argsWithoutProg) == 0 {
+		log.Println("Please specify necessary arguments!")
+	}
+
 	for a := 0; a < len(argsWithoutProg); a++ {
 		if argsWithoutProg[a] == "--type" {
 			instanceType = argsWithoutProg[a+1]
@@ -107,12 +111,13 @@ func main() {
 	//	url += "/wiki"
 	//}
 	pass := os.Getenv("ATLAS_PASS")
+
 	anmaToken := tokService.GetToken(os.Getenv("ATLAS_USER"), pass)
 
 	// Confluence instance
 	switch instanceType {
 	case "confluence":
-		ps := serv.PageService{}
+		pageService := serv.PageService{}
 		ss := serv.SpaceService{}
 		ls := serv.LabelService{}
 		as := serv.AttachService{}
@@ -124,17 +129,17 @@ func main() {
 		switch action {
 		case "getPage":
 			if pageId != "" {
-				page := ps.GetPage(url, anmaToken, pageId)
+				page := pageService.GetPage(url, anmaToken, pageId)
 				printPage(page)
 			} else {
-				page := ps.GetPageTitleKey(url, anmaToken, spaceKey, pageTitle)
+				page := pageService.GetPageTitleKey(url, anmaToken, spaceKey, pageTitle)
 				printPage(page)
 			}
 		case "getSpace":
 			space := ss.GetSpace(url, anmaToken, spaceKey)
 			fmt.Println(space)
 		case "createPage":
-			created := ps.CreateContent(url, anmaToken, "page", spaceKey, parent, pageTitle, body)
+			created := pageService.CreateContent(url, anmaToken, "page", spaceKey, parent, pageTitle, body)
 			if labels != "" {
 				ls.AddLabels(url, anmaToken, created.Id, strings.Split(labels, ","))
 			}
@@ -146,11 +151,13 @@ func main() {
 			downloaded := as.DownloadAttachments(url, anmaToken, pageId)
 			log.Println(downloaded)
 		case "addLabel":
-			page := ps.GetPage(url, anmaToken, pageId)
+			page := pageService.GetPage(url, anmaToken, pageId)
 			if labels != "" {
 				ls.AddLabels(url, anmaToken, page.Id, strings.Split(labels, ","))
 			}
 			log.Printf("Added labels '%s' to page '%s'", labels, page.Id)
+		case "addComment":
+			pageService.AddFooterCommentToPage(url, anmaToken, pageId, body)
 		}
 
 	// Jira instance
@@ -187,6 +194,6 @@ func main() {
 
 func printPage(page models.Content) {
 	log.Println("============ Content =============")
-	log.Printf("\nType: %s\nTitle: %s\nSpace: %s\nBody: %s",
+	log.Printf("\nType: %s\nTitle: %s\nSpace: %s\n \u001b[33mBody: %s\u001b[0m]",
 		page.Type, page.Title, page.Space.Name, page.Body.Storage.Value)
 }
