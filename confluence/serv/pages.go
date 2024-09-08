@@ -144,10 +144,8 @@ func (s PageService) GetDescendants(url string, tok string, id string, lim int) 
 }
 
 func (ps PageService) CreateContent(url string, tok string, ctype string, key string, parent string,
-	title string, bd string) models.Content {
-	client := &http.Client{
-		CheckRedirect: redirectPolicyFunc,
-	}
+	title string, body string) models.Content {
+
 	reqUrl := fmt.Sprintf("%s/rest/api/content", url)
 	ancestors := []models.Ancestor{{Id: parent}} // parent
 	contentBody := models.CreatePage{
@@ -157,12 +155,16 @@ func (ps PageService) CreateContent(url string, tok string, ctype string, key st
 			Key: key,
 		}, Body: models.Body{
 			Storage: models.Storage{
-				Representation: "storage", Value: bd},
+				Representation: "storage", Value: body},
 		},
 		Ancestors: ancestors,
 	}
 	mrsCtn, err2 := json.Marshal(contentBody)
-	//fmt.Println(string(mrsCtn))
+
+	// debug
+	fmt.Println(">>> Marshalled request body:")
+	fmt.Println(string(mrsCtn))
+
 	if err2 != nil {
 		log.Panicf("Error marshalling the JSON from ContentBody: %v", err2)
 	}
@@ -171,9 +173,9 @@ func (ps PageService) CreateContent(url string, tok string, ctype string, key st
 	req.Header.Add("Authorization", "Basic "+tok)
 	req.Header.Add("Content-Type", "application/json")
 
-	resp, err := client.Do(req)
+	resp, err := myClient().Do(req)
 	if err != nil {
-		log.Panicln(err)
+		log.Panicf("Error performing request: %v", err)
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -183,9 +185,17 @@ func (ps PageService) CreateContent(url string, tok string, ctype string, key st
 	}(resp.Body)
 
 	var content models.Content
+
 	bts, err := io.ReadAll(resp.Body)
+
 	err = json.Unmarshal(bts, &content)
-	//fmt.Println(string(bts))
+	if err != nil {
+		log.Panicf("Error unmarshalling JSON from response: %v", err)
+	}
+
+	// debug
+	fmt.Println(string(bts))
+
 	return content
 }
 

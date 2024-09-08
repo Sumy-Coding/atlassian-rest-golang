@@ -63,13 +63,13 @@ func main() {
 		}
 
 		// confluence
-		if argsWithoutProg[a] == "--id" {
+		if argsWithoutProg[a] == "--id" || argsWithoutProg[a] == "--pageId" {
 			pageId = argsWithoutProg[a+1]
 		}
-		if argsWithoutProg[a] == "--space" {
+		if argsWithoutProg[a] == "--space" || argsWithoutProg[a] == "--spaceKey" {
 			spaceKey = argsWithoutProg[a+1]
 		}
-		if argsWithoutProg[a] == "--title" {
+		if argsWithoutProg[a] == "--title" || argsWithoutProg[a] == "--pageTitle" {
 			pageTitle = argsWithoutProg[a+1]
 		}
 		if argsWithoutProg[a] == "--parent" {
